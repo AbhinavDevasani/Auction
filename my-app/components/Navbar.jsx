@@ -2,15 +2,11 @@
 
 import {
   LayoutDashboard,
-  Gavel,
-  Calendar,
+  Home,
   RotateCcw,
   Bookmark,
   Search,
-  List,
-  Circle,
   Headphones,
-  ShoppingCart,
   Info,
   Settings
 } from "lucide-react"
@@ -26,24 +22,24 @@ export default function Sidebar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
 
   const menu = [
-    { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
+  { icon: Home, label: "Home", href: "/auction" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
 
-    { section: "Auction" },
-    { icon: Gavel, label: "Auctions", href: "/auction" },
-    { icon: RotateCcw, label: "Active Bids", href: "/activebids" },
-    { icon: Bookmark, label: "Saved", href: "/saved" },
+  { section: "Auction" },
+  { icon: Search, label: "Search", href: "/search" },
+  { icon: RotateCcw, label: "Active Bids", href: "/activebids" },
+  { icon: Bookmark, label: "Saved", href: "/saved" },
 
-    { section: "Vehicle finder" },
-    { icon: Search, label: "Search", href: "/search" },
-    { icon: Info, label: "About Us", href: "/about" },
-    { icon: Headphones, label: "Help Center", href: "/help" },
-  ]
+  { section: "Auction finder" },
+  { icon: Info, label: "About Us", href: "/aboutus" },
+  { icon: Headphones, label: "Help Center", href: "/helpcenter" },
+]
 
   return (
     <div className="w-[20vw]  bg-white border-r flex flex-col justify-between p-4 min-h-screen">
       <div>
         <div className="flex items-center gap-3 mb-6">
-          <div className="bg-purple-500 w-10 h-10 rounded-full flex items-center justify-center text-white">
+          <div className="bg-orange-500 w-10 h-10 rounded-full flex items-center justify-center text-white">
             🚗
           </div>
           <p className="text-[25px] font-semibold text-black">BidHub</p>
@@ -90,7 +86,6 @@ export default function Sidebar() {
             <Link href="/dashboard" className="block px-4 py-2 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors">My Dashboard</Link>
             <Link href="/profile" className="block px-4 py-2 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors">Profile Settings</Link>
             <Link href="/activebids" className="block px-4 py-2 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors">My Bids</Link>
-            
             <div className="border-t border-gray-100 my-1"></div>
             
             <div className="px-1.5 mb-1 mt-1">

@@ -89,7 +89,7 @@ export default function DashboardContent() {
                   View Artwork
                 </button>
 
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-lg transition hover:bg-purple-700 hover:shadow-lg">
+                <button className="bg-orange-600 text-white px-4 py-2 rounded-lg transition hover:bg-orange-700 hover:shadow-lg">
                   Place Bid
                 </button>
 
@@ -124,7 +124,7 @@ export default function DashboardContent() {
 
                   </div>
 
-                  <button className="text-xs bg-purple-600 text-white px-3 py-1 rounded-lg transition hover:bg-purple-700">
+                  <button className="text-xs bg-orange-600 text-white px-3 py-1 rounded-lg transition hover:bg-orange-700">
                     Follow
                   </button>
 
