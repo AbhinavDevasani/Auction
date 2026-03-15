@@ -121,7 +121,7 @@ export default function AboutPage() {
               </p>
 
               <Link className="bg-orange-600 text-white px-6 py-3 rounded-lg
-              transition hover:bg-orange-700 hover:shadow-lg" href={'/activebids'}>
+              transition hover:bg-orange-700 hover:shadow-lg" href={'/search'}>
                 Start Bidding
               </Link>
 
