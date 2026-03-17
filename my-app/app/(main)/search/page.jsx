@@ -1,10 +1,7 @@
-"use client"
-
-import { useState } from "react"
 import Image from "next/image"
 import { Search } from "lucide-react"
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid"
-
+import SeachInput1 from "@/components/SeachInput1"
 const auctions = [
   {
     title: "Nike Air Jordan 1",
@@ -32,13 +29,11 @@ const auctions = [
   }
 ]
 
-export default function SearchPage() {
-  const [query, setQuery] = useState("")
-
+export default function SearchPage({ searchParams }) {
+  const query = searchParams.q || ""
   const filtered = auctions.filter((item) =>
     item.title.toLowerCase().includes(query.toLowerCase())
   )
-
   return (
     <div className="bg-gray-100 min-h-screen px-8 py-12 text-[#1F2937]">
 
@@ -62,17 +57,8 @@ export default function SearchPage() {
           <StaggerItem>
 
             <div className="bg-white rounded-xl shadow px-4 py-3 flex items-center gap-3">
-
               <Search size={20} className="text-gray-400" />
-
-              <input
-                type="text"
-                placeholder="Search auctions..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="outline-none w-full text-sm"
-              />
-
+              <SeachInput1 initialQuery={query} />
             </div>
 
           </StaggerItem>

@@ -8,7 +8,7 @@ import {
   Search,
   Headphones,
   Info,
-  Settings,
+  Settings,PlusCircle
 } from "lucide-react";
 import { Inter } from "next/font/google";
 import Link from "next/link";
@@ -29,7 +29,7 @@ export default function Sidebar() {
     { icon: Search, label: "Search", href: "/search" },
     { icon: RotateCcw, label: "Active Bids", href: "/activebids" },
     { icon: Bookmark, label: "Saved", href: "/saved" },
-
+    { icon: PlusCircle, label: "Sell Item", href: "/sell" },
     { section: "Auction finder" },
     { icon: Info, label: "About Us", href: "/aboutus" },
     { icon: Headphones, label: "Help Center", href: "/helpcenter" },
@@ -47,10 +47,10 @@ export default function Sidebar() {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              class="lucide lucide-gavel-icon lucide-gavel"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-gavel-icon lucide-gavel"
             >
               <path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3l8.384-8.381" />
               <path d="m16 16 6-6" />
@@ -116,6 +116,12 @@ export default function Sidebar() {
               className="block px-4 py-2 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors"
             >
               My Bids
+            </Link>
+            <Link
+              href="/wallet"
+              className="block px-4 py-2 text-[15px] text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Wallet
             </Link>
             <div className="border-t border-gray-100 my-1"></div>
 

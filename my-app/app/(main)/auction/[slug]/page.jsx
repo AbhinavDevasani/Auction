@@ -129,13 +129,6 @@ export default function AuctionItemPage() {
                   </button>
                 </div>
               </div>
-
-              {/* BUY NOW */}
-              <button className="w-full bg-green-600 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-green-700">
-                <Trophy size={18} />
-                Buy Now — $300
-              </button>
-
               {/* COLLECT CREDITS */}
               <button className="w-full border border-orange-500 text-orange-500 py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-orange-50">
                 <Coins size={18} />
