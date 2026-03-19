@@ -29,8 +29,10 @@ const auctions = [
   }
 ]
 
-export default function SearchPage({ searchParams }) {
-  const query = searchParams.q || ""
+export default async function SearchPage({ searchParams }) {
+  const params = await searchParams
+  const query = params.q || ""
+
   const filtered = auctions.filter((item) =>
     item.title.toLowerCase().includes(query.toLowerCase())
   )

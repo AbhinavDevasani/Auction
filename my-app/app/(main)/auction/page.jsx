@@ -1,34 +1,23 @@
+"use client";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 import Link from "next/link";
-const items = [
-  {
-    id: 1,
-    name: "Apple iPad 10.2",
-    price: "$120",
-    img: "https://images.unsplash.com/photo-1587614382346-4ec70e388b28",
-  },
-  {
-    id: 2,
-    name: "Nike Air Jordan 1",
-    price: "$95",
-    img: "https://res.cloudinary.com/dudjdf428/image/upload/v1773499373/piyush-haswani-gAVIw1zs1fU-unsplash_thqw5v.jpg",
-  },
-  {
-    id: 3,
-    name: "Samsung Galaxy A51",
-    price: "$85",
-    img: "https://images.unsplash.com/photo-1580910051074-3eb694886505",
-  },
-  {
-    id: 4,
-    name: "Apple TV 4K",
-    price: "$70",
-    img: "https://images.unsplash.com/photo-1593784991095-a205069470b6",
-  },
-];
+
 
 export default function AuctionsPage() {
+  const [auctions, setAuctions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+  const fetchAuctions = async () => {
+    const res = await fetch("/api/auctions");
+    const data = await res.json();
+    setAuctions(data.auctions);
+    setLoading(false);
+  };
+
+  fetchAuctions();
+}, []);
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* HERO */}
@@ -79,7 +68,7 @@ export default function AuctionsPage() {
         </StaggerItem>
 
         <StaggerGrid className="grid md:grid-cols-4 gap-6">
-          {items.map((item, index) => (
+          {auctions.map((item, index) => (
             <StaggerItem key={index}>
               {/* CARD */}
               <div
@@ -88,20 +77,20 @@ export default function AuctionsPage() {
               hover:-translate-y-1 hover:shadow-xl"
               >
                 <Image
-                  src={item.img}
+                  src={item.image}
                   width={300}
                   height={200}
                   alt={item.name}
                   className="rounded-lg object-cover h-40"
                 />
 
-                <h3 className="mt-3 font-medium">{item.name}</h3>
+                <h3 className="mt-3 font-medium">{item.title}</h3>
 
                 <p className="text-sm text-gray-500">Current Bid</p>
 
-                <p className="font-bold">{item.price}</p>
+                <p className="font-bold">{item.currentBid}</p>
 
-                <Link href={`/auction/${item.id}`}>
+                <Link href={`/auction/${item._id}`}>
                   <button className="mt-3 w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600">
                     Place Bid
                   </button>

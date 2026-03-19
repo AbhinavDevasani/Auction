@@ -4,6 +4,7 @@ import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 import LineGraph from "@/components/LineGraph";
 import SearchInput from "@/components/SearchInput";
 import Link from "next/link";
+import NotificationsPanel from "@/components/NotificationsPanel";
 export default function DashboardContent() {
   const completedAuctions = [
     {
@@ -49,6 +50,8 @@ export default function DashboardContent() {
             </div>
 
             <div className="flex items-center gap-4">
+              <NotificationsPanel />
+
               <Link href={"/wallet"}>
                 <div className="bg-white px-4 py-2 rounded-xl shadow text-sm text-black font-medium">
                   Wallet: $1,240

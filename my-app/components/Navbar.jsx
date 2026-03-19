@@ -8,6 +8,7 @@ import {
   Search,
   Headphones,
   Info,
+  List,
   Settings,PlusCircle
 } from "lucide-react";
 import { Inter } from "next/font/google";
@@ -30,6 +31,8 @@ export default function Sidebar() {
     { icon: RotateCcw, label: "Active Bids", href: "/activebids" },
     { icon: Bookmark, label: "Saved", href: "/saved" },
     { icon: PlusCircle, label: "Sell Item", href: "/sell" },
+    { label: "My Listings", href: "/mylistings", icon: List },
+
     { section: "Auction finder" },
     { icon: Info, label: "About Us", href: "/aboutus" },
     { icon: Headphones, label: "Help Center", href: "/helpcenter" },
