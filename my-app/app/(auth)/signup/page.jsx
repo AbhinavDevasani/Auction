@@ -1,48 +1,87 @@
-import { Mail, Lock, User } from "lucide-react"
-import Link from "next/link"
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Mail, Lock, User } from "lucide-react";
+import Link from "next/link";
 export default function SignUpPage() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const router = useRouter();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error);
+        return;
+      }
+
+      alert("Account created successfully");
+      router.push("/signin");
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
+    }
+  };
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-[#1F2937]">
       <div className="flex items-center gap-3 mb-6 justify-center">
-          <div className="bg-orange-500 w-10 h-10 rounded-full flex items-center justify-center text-white">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-gavel-icon lucide-gavel"
-            >
-              <path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3l8.384-8.381" />
-              <path d="m16 16 6-6" />
-              <path d="m21.5 10.5-8-8" />
-              <path d="m8 8 6-6" />
-              <path d="m8.5 7.5 8 8" />
-            </svg>
-          </div>
-          <p className="text-[25px] font-semibold text-black">BidHub</p>
+        <div className="bg-orange-500 w-10 h-10 rounded-full flex items-center justify-center text-white">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="lucide lucide-gavel-icon lucide-gavel"
+          >
+            <path d="m14 13-8.381 8.38a1 1 0 0 1-3.001-3l8.384-8.381" />
+            <path d="m16 16 6-6" />
+            <path d="m21.5 10.5-8-8" />
+            <path d="m8 8 6-6" />
+            <path d="m8.5 7.5 8 8" />
+          </svg>
         </div>
+        <p className="text-[25px] font-semibold text-black">BidHub</p>
+      </div>
       {/* Title */}
       <h1 className="text-2xl font-semibold text-gray-800 mb-2">
         Create Account
       </h1>
-      <p className="text-gray-500 mb-6">
-        Sign up to start bidding and selling
-      </p>
+      <p className="text-gray-500 mb-6">Sign up to start bidding and selling</p>
 
       {/* Form */}
-      <form className="space-y-4">
-
+      <form className="space-y-4" onSubmit={handleSubmit}>
         {/* Name */}
         <div className="relative">
           <User className="absolute left-3 top-3 text-gray-400" size={18} />
           <input
             type="text"
             placeholder="Full name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
         </div>
@@ -53,6 +92,8 @@ export default function SignUpPage() {
           <input
             type="email"
             placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
         </div>
@@ -63,6 +104,8 @@ export default function SignUpPage() {
           <input
             type="password"
             placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
         </div>
@@ -73,6 +116,8 @@ export default function SignUpPage() {
           <input
             type="password"
             placeholder="Confirm password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
         </div>
@@ -105,5 +150,5 @@ export default function SignUpPage() {
         </Link>
       </p>
     </div>
-  )
+  );
 }

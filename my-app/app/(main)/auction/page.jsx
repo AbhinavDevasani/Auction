@@ -11,8 +11,8 @@ export default function AuctionsPage() {
   useEffect(() => {
   const fetchAuctions = async () => {
     const res = await fetch("/api/auctions");
-    const data = await res.json();
-    setAuctions(data.auctions);
+    const data=await res.json()
+    setAuctions(data.auctions)
     setLoading(false);
   };
 
@@ -80,7 +80,7 @@ export default function AuctionsPage() {
                   src={item.image}
                   width={300}
                   height={200}
-                  alt={item.name}
+                  alt={item.title}
                   className="rounded-lg object-cover h-40"
                 />
 
@@ -88,7 +88,7 @@ export default function AuctionsPage() {
 
                 <p className="text-sm text-gray-500">Current Bid</p>
 
-                <p className="font-bold">{item.currentBid}</p>
+                <p className="font-bold">${item.currentBid}</p>
 
                 <Link href={`/auction/${item._id}`}>
                   <button className="mt-3 w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600">

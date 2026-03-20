@@ -2,8 +2,38 @@
 
 import { Mail, Lock } from "lucide-react"
 import Link from "next/link"
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 export default function SignInPage() {
+  const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const router = useRouter();
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error);
+      return;
+    }
+    alert("Login successful");
+    router.push("/dashboard");
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-[#1F2937]">
       
@@ -36,7 +66,7 @@ export default function SignInPage() {
       </p>
 
       {/* Form */}
-      <form className="space-y-4">
+      <form className="space-y-4" onSubmit={handleSubmit}>
         
         {/* Email */}
         <div className="relative">
@@ -44,6 +74,8 @@ export default function SignInPage() {
           <input
             type="email"
             placeholder="Email address"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
         </div>
@@ -54,6 +86,8 @@ export default function SignInPage() {
           <input
             type="password"
             placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
           />
         </div>
