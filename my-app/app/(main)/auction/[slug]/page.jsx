@@ -10,8 +10,6 @@ export default function AuctionItemPage() {
   const { slug } = useParams(); 
   const [auction, setAuction] = useState(null);
   const [bid, setBid] = useState("");
-  const [currentBid, setCurrentBid] = useState(0);
-  const [highestBidder, setHighestBidder] = useState("");
 useEffect(() => {
   const fetchAuction = async () => {
     const res = await fetch(`/api/auctions/${slug}`);
@@ -23,16 +21,37 @@ useEffect(() => {
   if (slug) fetchAuction();
 }, [slug]);
 
-  const handleBid = () => {
-    if (Number(bid) > currentBid) {
-      setCurrentBid(Number(bid));
-      setHighestBidder("You");
-      setBid("");
-    } else {
-      alert("Bid must be higher than current bid");
-    }
-  };
+  const handleBid = async () => {
+  try {
+    const res = await fetch("/api/auctions/bid", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        auctionId: slug,
+        amount: Number(bid),
+      }),
+    });
 
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error);
+      return;
+    }
+    setAuction(data.auction);
+    setBid("");
+
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong");
+  }
+};
+  const currentBid =
+  auction?.currentBid || auction?.startingPrice || 0;
+  const highestBidder =
+  auction?.highestBidder?.name || "No bids yet";
   if (!auction) return <p className="p-10">Loading...</p>;
 
   return (

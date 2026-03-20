@@ -7,7 +7,7 @@ export async function POST(req) {
   try {
     await connectDB();
 
-    const user = verifyToken();
+    const user = verifyToken(req);
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -41,6 +41,16 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+
+    const minBid = auction.currentBid || auction.startingPrice;
+
+    if (bidAmount <= minBid) {
+      return NextResponse.json(
+        { error: "Bid must be higher than current bid" },
+        { status: 400 }
+      );
+    }
+
     const updatedAuction = await Auction.findOneAndUpdate(
       {
         _id: auctionId,
