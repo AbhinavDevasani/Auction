@@ -15,7 +15,7 @@ import { Inter } from "next/font/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-
+import LogoutButton from "./LogoutButton";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Sidebar() {
@@ -37,9 +37,8 @@ export default function Sidebar() {
     { icon: Info, label: "About Us", href: "/aboutus" },
     { icon: Headphones, label: "Help Center", href: "/helpcenter" },
   ];
-
   return (
-    <div className="w-[20vw]  bg-white border-r flex flex-col justify-between p-4 min-h-screen">
+    <div className="w-[20vw] sticky top-0 h-screen overflow-y-auto bg-white border-r flex flex-col justify-between p-4">
       <div>
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-orange-500 w-10 h-10 rounded-full flex items-center justify-center text-white">
@@ -129,9 +128,7 @@ export default function Sidebar() {
             <div className="border-t border-gray-100 my-1"></div>
 
             <div className="px-1.5 mb-1 mt-1">
-              <button className="w-full text-left px-3 py-2 text-[15px] text-gray-700 hover:text-red-500 hover:bg-gray-50 rounded-lg transition-colors">
-                Log out
-              </button>
+              <LogoutButton/>
             </div>
           </div>
         )}

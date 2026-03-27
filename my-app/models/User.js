@@ -22,6 +22,12 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    savedItems: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Auction",
+      },
+    ],
   },
   { timestamps: true }
 );

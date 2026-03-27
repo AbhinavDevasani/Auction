@@ -37,7 +37,6 @@ export default function ActiveBidsPage() {
     fetchBids();
   }, []);
 
-  // ⏱️ Time remaining
   const getTimeLeft = (endTime) => {
     const diff = new Date(endTime) - new Date();
 

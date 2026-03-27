@@ -1,88 +1,87 @@
-"use client"
+"use client";
 
-import Image from "next/image"
-import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid"
-
-const savedItems = [
-  {
-    name: "Nike Air Jordan 1",
-    price: "$120",
-    img: "https://res.cloudinary.com/dudjdf428/image/upload/v1773499373/piyush-haswani-gAVIw1zs1fU-unsplash_thqw5v.jpg"
-  },
-  {
-    name: "Apple iPad 10.2",
-    price: "$95",
-    img: "https://images.unsplash.com/photo-1587614382346-4ec70e388b28"
-  },
-  {
-    name: "Samsung Galaxy A51",
-    price: "$85",
-    img: "https://images.unsplash.com/photo-1580910051074-3eb694886505"
-  },
-  {
-    name: "Apple TV 4K",
-    price: "$70",
-    img: "https://images.unsplash.com/photo-1593784991095-a205069470b6"
-  }
-]
+import { useEffect, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 
 export default function SavedItemsPage() {
+  const [savedItems, setSavedItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSavedItems = async () => {
+      try {
+        const res = await fetch("/api/user/saved");
+        const data = await res.json();
+        console.log(data)
+        if (res.ok) {
+          setSavedItems(data.savedItems || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch saved items", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSavedItems();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-gray-100 min-h-screen px-8 py-12 flex justify-center items-center">
+        <p>Loading saved items...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-100 min-h-screen px-8 py-12 text-[#1F2937]">
-
       <div className="max-w-7xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Saved Items</h1>
 
-        <h1 className="text-3xl font-bold mb-8">
-          Saved Items
-        </h1>
+        {savedItems.length === 0 ? (
+          <p className="text-gray-500">You have not saved any items yet.</p>
+        ) : (
+          <StaggerGrid className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {savedItems.map((item, index) => (
+              <StaggerItem key={item._id || index}>
+                <div
+                  className="bg-white rounded-xl shadow p-4 
+                transition-all duration-300 
+                hover:-translate-y-1 hover:shadow-xl hover:scale-[1.02]"
+                >
+                  <div className="overflow-hidden rounded-lg">
+                    <Image
+                      src={item.image || "/placeholder.jpg"}
+                      width={400}
+                      height={250}
+                      alt={item.title}
+                      className="object-cover h-40 w-full transition duration-300 hover:scale-105"
+                    />
+                  </div>
 
-        <StaggerGrid className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  <h3 className="mt-3 font-semibold">{item.title}</h3>
 
-          {savedItems.map((item, index) => (
+                  <p className="text-gray-500 text-sm">Current Bid</p>
 
-            <StaggerItem key={index}>
+                  <p className="font-bold">${item.currentBid || item.startingPrice}</p>
 
-              <div className="bg-white rounded-xl shadow p-4 
-              transition-all duration-300 
-              hover:-translate-y-1 hover:shadow-xl hover:scale-[1.02]">
-
-                <div className="overflow-hidden rounded-lg">
-                  <Image
-                    src={item.img}
-                    width={400}
-                    height={250}
-                    alt={item.name}
-                    className="object-cover h-40 w-full transition duration-300 hover:scale-105"
-                  />
+                  <Link href={`/auction/${item._id}`}>
+                    <button
+                      className="mt-3 w-full bg-orange-500 text-white py-2 rounded-lg
+                  transition duration-200 hover:bg-orange-600 hover:shadow-md"
+                    >
+                      View Auction
+                    </button>
+                  </Link>
                 </div>
-
-                <h3 className="mt-3 font-semibold">
-                  {item.name}
-                </h3>
-
-                <p className="text-gray-500 text-sm">
-                  Current Bid
-                </p>
-
-                <p className="font-bold">
-                  {item.price}
-                </p>
-
-                <button className="mt-3 w-full bg-orange-500 text-white py-2 rounded-lg
-                transition duration-200 hover:bg-orange-600 hover:shadow-md">
-                  View Auction
-                </button>
-
-              </div>
-
-            </StaggerItem>
-
-          ))}
-
-        </StaggerGrid>
-
+              </StaggerItem>
+            ))}
+          </StaggerGrid>
+        )}
       </div>
-
     </div>
-  )
+  );
 }

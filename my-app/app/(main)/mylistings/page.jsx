@@ -2,38 +2,25 @@
 
 import Image from "next/image"
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid"
-
-const listings = [
-  {
-    id: 1,
-    name: "Nike Air Jordan 1 Retro",
-    currentBid: 320,
-    bids: 0,
-    timeLeft: "2h 15m",
-    status: "Active",
-    image: "https://images.unsplash.com/photo-1600180758890-6b94519a8ba6",
-  },
-  {
-    id: 2,
-    name: "iPhone 13 Pro",
-    currentBid: 780,
-    bids: 6,
-    timeLeft: "5h 40m",
-    status: "Active",
-    image: "https://images.unsplash.com/photo-1632661674596-618e1d47f3d9",
-  },
-  {
-    id: 3,
-    name: "Gaming Laptop",
-    currentBid: 1200,
-    bids: 12,
-    timeLeft: "Ended",
-    status: "Ended",
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-  },
-]
+import { useState, useEffect } from "react"
 
 export default function MyListingsPage() {
+  const [listings, setListings] = useState([])
+
+  const getListings = async () => {
+    try {
+      const res = await fetch("/api/user/listings")
+      const data = await res.json()
+      setListings(data.listings || [])
+    } catch (err) {
+      console.error("Failed to fetch listings", err)
+    }
+  }
+
+  useEffect(() => {
+    getListings()
+  }, [])
+  console.log(listings)
   return (
     <div className="flex-1 bg-[#F9FAFB] min-h-screen p-6">
 
@@ -47,20 +34,21 @@ export default function MyListingsPage() {
         </p>
       </div>
 
-      {/* GRID FIX */}
+      {/* Grid */}
       <StaggerGrid className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {listings.map((item) => {
-          const isLocked = item.bids > 0
+
+          const isLocked = item.bids?.length > 0
 
           return (
-            <StaggerItem key={item.id}>
+            <StaggerItem key={item._id}>
               <div className="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition">
 
                 {/* Image */}
                 <div className="relative w-full h-32 mb-2">
                   <Image
-                    src={item.image}
-                    alt={item.name}
+                    src={item.image || "/placeholder.jpg"}
+                    alt={item.title}
                     fill
                     className="object-cover rounded-lg"
                   />
@@ -68,7 +56,7 @@ export default function MyListingsPage() {
 
                 {/* Title */}
                 <h2 className="text-sm font-semibold text-[#1F2937] line-clamp-1">
-                  {item.name}
+                  {item.title}
                 </h2>
 
                 {/* Info */}
@@ -76,16 +64,20 @@ export default function MyListingsPage() {
                   <p>
                     Bid:{" "}
                     <span className="text-black font-medium">
-                      ${item.currentBid}
+                      ${item.currentBid || item.startingPrice}
                     </span>
                   </p>
-                  <p>{item.bids} bids</p>
-                  <p className="text-orange-500">{item.timeLeft}</p>
+
+                  <p>{item.bids?.length || 0} bids</p>
+
+                  <p className="text-orange-500">
+                    {item.status === "ended" ? "Ended" : "Active"}
+                  </p>
                 </div>
 
                 {/* Status */}
                 <div className="mt-2">
-                  {item.status === "Ended" ? (
+                  {item.status === "ended" ? (
                     <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded">
                       Ended
                     </span>
@@ -102,14 +94,24 @@ export default function MyListingsPage() {
 
                 {/* Actions */}
                 <div className="flex items-center mt-2 text-xs">
-                  {!isLocked && item.status !== "Ended" ? (
+                  {!isLocked && item.status !== "ended" ? (
                     <>
-                      <button className="text-orange-500">Edit</button>
-                      <button className="text-red-500 ml-2">Delete</button>
+                      <button className="text-orange-500 hover:underline">
+                        Edit
+                      </button>
+                      <button className="text-red-500 ml-2 hover:underline">
+                        Delete
+                      </button>
                     </>
-                  ) : null}
+                  ) : (
+                    <span className="text-gray-400 italic">
+                      {item.status === "ended"
+                        ? "Auction ended"
+                        : "Locked after first bid"}
+                    </span>
+                  )}
 
-                  <button className="ml-auto text-gray-600">
+                  <button className="ml-auto text-gray-600 hover:underline">
                     View
                   </button>
                 </div>

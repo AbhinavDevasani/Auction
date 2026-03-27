@@ -26,7 +26,6 @@ export default function RootLayout({ children }) {
             <main className="flex-1">{children}</main>
             
           </div>
-          
         </div>
       </body>
     </html>

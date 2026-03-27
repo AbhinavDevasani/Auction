@@ -22,15 +22,24 @@ const AuctionSchema = new mongoose.Schema(
       required: true,
     },
     description: String,
-    
-    image: String,
+
+    image: String, // Primary image (first uploaded image)
+    images: [String],
     startingPrice: {
-      type: Number,
-      required: true,
-    },
+  type: Number,
+  required: true,
+  min: 0,
+},
 
     currentBid: {
       type: Number,
+      default: function () {
+        return this.startingPrice;
+      },
+    },
+    minIncrement: {
+      type: Number,
+      default: 100,
     },
     highestBidder: {
       type: mongoose.Schema.Types.ObjectId,

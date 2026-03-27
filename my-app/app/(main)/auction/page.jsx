@@ -68,7 +68,7 @@ export default function AuctionsPage() {
         </StaggerItem>
 
         <StaggerGrid className="grid md:grid-cols-4 gap-6">
-          {auctions.map((item, index) => (
+          {auctions.slice(0, 4).map((item, index) => (
             <StaggerItem key={index}>
               {/* CARD */}
               <div
