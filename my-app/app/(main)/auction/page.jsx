@@ -9,15 +9,15 @@ export default function AuctionsPage() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-  const fetchAuctions = async () => {
-    const res = await fetch("/api/auctions");
-    const data=await res.json()
-    setAuctions(data.auctions)
-    setLoading(false);
-  };
+    const fetchAuctions = async () => {
+      const res = await fetch("/api/auctions");
+      const data = await res.json()
+      setAuctions(data.auctions)
+      setLoading(false);
+    };
 
-  fetchAuctions();
-}, []);
+    fetchAuctions();
+  }, []);
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* HERO */}
@@ -36,13 +36,19 @@ export default function AuctionsPage() {
               </p>
 
               <div className="flex gap-4 mt-6">
-                <button className="bg-orange-500 text-white px-6 py-3 rounded-lg">
+                <Link
+                  href="/signup"
+                  className="bg-orange-500 text-white px-6 py-3 rounded-lg"
+                >
                   Sign Up
-                </button>
+                </Link>
 
-                <button className="border px-6 py-3 rounded-lg text-[#1F2937]">
+                <Link
+                  href="/signin"
+                  className="border px-6 py-3 rounded-lg text-[#1F2937]"
+                >
                   Log In
-                </button>
+                </Link>
               </div>
             </div>
           </StaggerItem>

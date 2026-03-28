@@ -1,25 +1,34 @@
+import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-export default function proxy(request) {
-  const token = request.cookies.get("token")?.value;
-  const pathname = request.nextUrl.pathname;
 
-  const isProtected =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/activebids") ||
-    pathname.startsWith("/saved") ||
-    pathname.startsWith("/sell") ||
-    pathname.startsWith("/mylistings") ||
-    pathname.startsWith("/search"); 
-
-  const isAuctionDetail =
-    pathname.startsWith("/auction/") && pathname !== "/auction";
-
-  if ((isProtected || isAuctionDetail) && !token) {
-    return NextResponse.redirect(new URL("/signin", request.url));
+export default withAuth(
+  function middleware(req) {
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ req, token }) => {
+        const pathname = req.nextUrl.pathname;
+        const isProtected =
+          pathname.startsWith("/dashboard") ||
+          pathname.startsWith("/activebids") ||
+          pathname.startsWith("/saved") ||
+          pathname.startsWith("/sell") ||
+          pathname.startsWith("/mylistings") ||
+          pathname.startsWith("/search") ||
+          (pathname.startsWith("/auction/") && pathname !== "/auction");
+        
+        if (isProtected) {
+          return !!token;
+        }
+        return true;
+      },
+    },
+    pages: {
+      signIn: "/signin",
+    },
   }
-
-  return NextResponse.next();
-}
+);
 
 export const config = {
   matcher: [
@@ -28,7 +37,7 @@ export const config = {
     "/saved/:path*",
     "/sell/:path*",
     "/search/:path*",
-    "/auction/:path*", 
-    "/mylistings/:path*", 
+    "/auction/:path*",
+    "/mylistings/:path*",
   ],
 };

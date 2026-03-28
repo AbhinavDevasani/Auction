@@ -4,31 +4,30 @@ import { Mail, Lock } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+
 export default function SignInPage() {
   const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const router = useRouter();
+
   const handleSubmit = async (e) => {
   e.preventDefault();
 
   try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ email, password }),
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
     });
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error);
+    if (res?.error) {
+      alert(res.error);
       return;
     }
+    
     alert("Login successful");
-    router.push("/dashboard");
+    window.location.href = "/dashboard";
   } catch (err) {
     console.error(err);
     alert("Something went wrong");
@@ -121,7 +120,11 @@ const router = useRouter();
       </div>
 
       {/* Google Button */}
-      <button className="w-full border border-gray-200 py-2.5 rounded-lg hover:bg-gray-50 transition">
+      <button 
+        type="button" 
+        onClick={() => signIn("google", { callbackUrl: "/auction" })}
+        className="w-full border border-gray-200 py-2.5 rounded-lg hover:bg-gray-50 transition"
+      >
         Continue with Google
       </button>
 
