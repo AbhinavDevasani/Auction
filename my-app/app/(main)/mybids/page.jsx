@@ -5,24 +5,24 @@ const myBids = [
   {
     item: "Vintage Rolex Watch",
     img: "https://images.unsplash.com/photo-1523275335684-37898b6baf30",
-    currentBid: "$1,250",
-    myBid: "$1,100",
+    currentBid: "₹1,250",
+    myBid: "₹1,100",
     status: "Outbid",
     time: "2h 15m"
   },
   {
     item: "Nike Air Jordan 1",
     img: "https://res.cloudinary.com/dudjdf428/image/upload/v1773499373/piyush-haswani-gAVIw1zs1fU-unsplash_thqw5v.jpg",
-    currentBid: "$320",
-    myBid: "$320",
+    currentBid: "₹320",
+    myBid: "₹320",
     status: "Winning",
     time: "5h 12m"
   },
   {
     item: "Apple iPad Pro",
     img: "https://images.unsplash.com/photo-1587614382346-4ec70e388b28",
-    currentBid: "$720",
-    myBid: "$680",
+    currentBid: "₹720",
+    myBid: "₹680",
     status: "Outbid",
     time: "1d 3h"
   },

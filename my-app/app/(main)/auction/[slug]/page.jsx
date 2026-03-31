@@ -151,7 +151,7 @@ export default function AuctionItemPage() {
                 <div>
                   <p className="text-sm text-gray-500">Current Bid</p>
                   <p className="text-2xl font-bold text-orange-500">
-                    ${currentBid}
+                    ₹{currentBid}
                   </p>
                 </div>
               </div>
@@ -212,7 +212,7 @@ export default function AuctionItemPage() {
                     className="flex justify-between border-b pb-2"
                   >
                     <span>{bidItem.user?.name}</span>
-                    <span>${bidItem.amount}</span>
+                    <span>₹{bidItem.amount}</span>
                   </div>
                 ))
               ) : (

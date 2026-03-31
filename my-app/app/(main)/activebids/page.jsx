@@ -61,7 +61,7 @@ export default function ActiveBidsPage() {
         {/* Grid */}
         <StaggerGrid className="grid md:grid-cols-3 gap-6">
           {bids.map((auction, index) => {
-            const userId = user?.userId;
+            const userId = user?._id;
             const yourBid = auction.bids
               ?.filter((b) => b.user?._id === userId)
               ?.sort((a, b) => b.amount - a.amount)[0]?.amount;
@@ -92,14 +92,14 @@ export default function ActiveBidsPage() {
                     <p>
                       Current Bid:
                       <span className="font-bold ml-2">
-                        ${auction.currentBid}
+                        ₹{auction.currentBid}
                       </span>
                     </p>
 
                     <p>
                       Your Bid:
                       <span className="font-bold ml-2 text-orange-500">
-                        {yourBid ? `$${yourBid}` : "—"}
+                        {yourBid ? `₹${yourBid}` : "—"}
                       </span>
                     </p>
 

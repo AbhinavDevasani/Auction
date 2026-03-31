@@ -1,23 +1,107 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid"
 import { User, Mail, Phone, MapPin, Camera } from "lucide-react"
 
 export default function ProfilePage() {
 
   const [user, setUser] = useState({
-    name: "Abhinav",
-    email: "abhinav@example.com",
-    phone: "+91 98765 43210",
-    location: "India"
+    name: "Loading...",
+    email: "Loading...",
+    phone: "",
+    location: "",
+    avatar: ""
   })
+  const [uploading, setUploading] = useState(false);
+  const [stats, setStats] = useState({
+    wonAuctions: 0,
+    activeBids: 0,
+    createdAuctions: 0
+  });
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const [resWon, resBids, resListings] = await Promise.all([
+          fetch("/api/user/wonauctions"),
+          fetch("/api/auctions/activebids"),
+          fetch("/api/user/listings")
+        ]);
+
+        const wonData = resWon.ok ? await resWon.json() : { auctions: [] };
+        const bidsData = resBids.ok ? await resBids.json() : { auctions: [] };
+        const listingsData = resListings.ok ? await resListings.json() : { listings: [] };
+
+        setStats({
+          wonAuctions: wonData.auctions?.length || 0,
+          activeBids: bidsData.auctions?.length || 0,
+          createdAuctions: listingsData.listings?.length || 0
+        });
+      } catch (err) {
+        console.error("Failed to fetch stats", err);
+      }
+    }
+    fetchStats();
+  }, []);
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch("/api/user");
+        const data = await res.json();
+        if (data.user) {
+          setUser(prev => ({
+            ...prev,
+            name: data.user.name || "",
+            email: data.user.email || "",
+            avatar: data.user.avatar || data.user.image || "",
+          }));
+        }
+      } catch (err) {
+        console.error("Failed to fetch user profile", err);
+      }
+    }
+    fetchUser();
+  }, []);
 
   const handleChange = (e) => {
     setUser({
       ...user,
       [e.target.name]: e.target.value
     })
+  }
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const res = await fetch("/api/user/avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to upload avatar");
+      }
+
+      setUser(prev => ({
+        ...prev,
+        avatar: data.user.avatar,
+      }));
+      
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
@@ -43,13 +127,25 @@ export default function ProfilePage() {
               <div className="relative">
 
                 <img
-                  src="https://i.pravatar.cc/120"
+                  src={user.avatar || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user.name || "User Profile")}`}
                   className="w-24 h-24 rounded-full object-cover"
+                  referrerPolicy="no-referrer"
                 />
 
-                <button className="absolute bottom-0 right-0 bg-orange-600 text-white p-2 rounded-full hover:bg-orange-700">
-                  <Camera size={16}/>
-                </button>
+                <label className="absolute bottom-0 right-0 bg-orange-600 text-white p-2 flex items-center justify-center rounded-full hover:bg-orange-700 transition cursor-pointer">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={handleAvatarUpload} 
+                    disabled={uploading}
+                  />
+                  {uploading ? (
+                    <div className="w-4 h-4 rounded-full border-2 border-white/50 border-t-white animate-spin" />
+                  ) : (
+                    <Camera size={16}/>
+                  )}
+                </label>
 
               </div>
 
@@ -67,7 +163,7 @@ export default function ProfilePage() {
             </div>
 
           </StaggerItem>
-
+        
           {/* STATS */}
           <StaggerItem>
 
@@ -79,7 +175,7 @@ export default function ProfilePage() {
                     Auctions Won
                   </h3>
                   <p className="text-2xl font-bold mt-2">
-                    12
+                    {stats.wonAuctions}
                   </p>
                 </div>
               </StaggerItem>
@@ -90,7 +186,7 @@ export default function ProfilePage() {
                     Active Bids
                   </h3>
                   <p className="text-2xl font-bold mt-2">
-                    5
+                    {stats.activeBids}
                   </p>
                 </div>
               </StaggerItem>
@@ -101,7 +197,7 @@ export default function ProfilePage() {
                     Auctions Created
                   </h3>
                   <p className="text-2xl font-bold mt-2">
-                    3
+                    {stats.createdAuctions}
                   </p>
                 </div>
               </StaggerItem>
@@ -198,36 +294,6 @@ export default function ProfilePage() {
             </div>
 
           </StaggerItem>
-
-          {/* RECENT ACTIVITY */}
-          <StaggerItem>
-
-            <div className="bg-white rounded-xl shadow p-8">
-
-              <h2 className="text-xl font-semibold mb-6">
-                Recent Activity
-              </h2>
-
-              <div className="space-y-4 text-sm text-gray-600">
-
-                <div className="border-b pb-2">
-                  Placed a bid on <span className="font-medium">Vintage Camera</span>
-                </div>
-
-                <div className="border-b pb-2">
-                  Won auction for <span className="font-medium">Gaming Keyboard</span>
-                </div>
-
-                <div className="border-b pb-2">
-                  Created auction <span className="font-medium">Apple Watch</span>
-                </div>
-
-              </div>
-
-            </div>
-
-          </StaggerItem>
-
         </StaggerGrid>
 
       </div>

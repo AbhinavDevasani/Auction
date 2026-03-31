@@ -14,13 +14,27 @@ import {
 import { Inter } from "next/font/google";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import LogoutButton from "./LogoutButton";
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Sidebar() {
   const pathname = usePathname();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const res = await fetch("/api/user");
+        const data = await res.json();
+        setUser(data.user);
+      } catch (err) {
+        console.error("Failed to fetch user profile", err);
+      }
+    }
+    fetchUser();
+  }, []);
 
   const menu = [
     { icon: Home, label: "Home", href: "/auction" },
@@ -140,17 +154,18 @@ export default function Sidebar() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
               <img
-                src="https://ui-avatars.com/api/?name=User+Profile&background=random"
+                src={user?.avatar || user?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user?.name || "User Profile")}`}
                 alt="Profile"
                 className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
               />
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900 leading-none mb-1">
-                Jane Doe
+                {user?.name || "Loading..."}
               </p>
               <p className="text-xs text-gray-500 font-medium">
-                $542.00 Balance
+                ₹{user?.balance !== undefined ? user.balance : "0.00"} Balance
               </p>
             </div>
           </div>

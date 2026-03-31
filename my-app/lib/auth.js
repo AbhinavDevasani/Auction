@@ -115,7 +115,7 @@ export async function verifyToken() {
     
     if (!session?.user) return null;
 
-    return session.user;
+    return { ...session.user, userId: session.user.id };
   } catch {
     return null;
   }

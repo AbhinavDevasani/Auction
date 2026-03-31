@@ -71,9 +71,6 @@ export default function SellPage() {
 
       const res = await fetch("/api/auctions/create", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
         body: formData,
         // Do NOT set Content-Type manually - browser will set it with boundary
       });

@@ -6,16 +6,14 @@ import { verifyToken } from "@/lib/auth";
 export async function GET(req) {
   try {
     await connectDB();
-    const token = req.cookies.get("token")?.value;
+    const decoded = await verifyToken();
 
-    if (!token) {
+    if (!decoded) {
       return NextResponse.json(
         { error: "Not authenticated" },
         { status: 401 }
       );
     }
-
-    const decoded =await verifyToken(token);
     console.log(decoded)
     const listings = await Auction.find({ seller: decoded.userId })
       .sort({ createdAt: -1 });

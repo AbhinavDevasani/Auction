@@ -7,11 +7,19 @@ export async function GET(req) {
   await connectDB();
 
   const { searchParams } = new URL(req.url);
+  const query = searchParams.get("q");
 
-  const query = searchParams.get("q") || "";
-  const auctions = await Auction.find({
-    title: { $regex: query, $options: "i" },
-  })
+  let auctions;
+
+  if (query && query.trim() !== "") {
+    auctions = await Auction.find({
+      title: { $regex: query, $options: "i" },
+    });
+  } else {
+    auctions = await Auction.find();
+  }
+
+  auctions = await Auction.find()
     .sort({ createdAt: -1 })
     .populate("highestBidder", "name");
 

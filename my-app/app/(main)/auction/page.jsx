@@ -8,6 +8,8 @@ import Link from "next/link";
 export default function AuctionsPage() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+
   useEffect(() => {
     const fetchAuctions = async () => {
       const res = await fetch("/api/auctions");
@@ -16,7 +18,18 @@ export default function AuctionsPage() {
       setLoading(false);
     };
 
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/user");
+        const data = await res.json();
+        setUser(data.user);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
     fetchAuctions();
+    fetchUser();
   }, []);
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -36,19 +49,30 @@ export default function AuctionsPage() {
               </p>
 
               <div className="flex gap-4 mt-6">
-                <Link
-                  href="/signup"
-                  className="bg-orange-500 text-white px-6 py-3 rounded-lg"
-                >
-                  Sign Up
-                </Link>
+                {!user ? (
+                  <>
+                    <Link
+                      href="/signup"
+                      className="bg-orange-500 text-white px-6 py-3 rounded-lg"
+                    >
+                      Sign Up
+                    </Link>
 
-                <Link
-                  href="/signin"
-                  className="border px-6 py-3 rounded-lg text-[#1F2937]"
-                >
-                  Log In
-                </Link>
+                    <Link
+                      href="/signin"
+                      className="border px-6 py-3 rounded-lg text-[#1F2937]"
+                    >
+                      Log In
+                    </Link>
+                  </>
+                ) : (
+                  <Link
+                    href="/dashboard"
+                    className="bg-orange-500 text-white px-6 py-3 rounded-lg"
+                  >
+                    Go to Dashboard
+                  </Link>
+                )}
               </div>
             </div>
           </StaggerItem>
@@ -94,7 +118,7 @@ export default function AuctionsPage() {
 
                 <p className="text-sm text-gray-500">Current Bid</p>
 
-                <p className="font-bold">${item.currentBid}</p>
+                <p className="font-bold">₹{item.currentBid}</p>
 
                 <Link href={`/auction/${item._id}`}>
                   <button className="mt-3 w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600">

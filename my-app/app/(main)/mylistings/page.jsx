@@ -64,7 +64,7 @@ export default function MyListingsPage() {
                   <p>
                     Bid:{" "}
                     <span className="text-black font-medium">
-                      ${item.currentBid || item.startingPrice}
+                      ₹{item.currentBid || item.startingPrice}
                     </span>
                   </p>
 

@@ -84,7 +84,7 @@ function SearchContent() {
                       <p className="text-gray-500 text-sm">Current Bid</p>
 
                       <p className="font-bold">
-                        ${item.currentBid || item.startingPrice}
+                        ₹{item.currentBid || item.startingPrice}
                       </p>
 
                       <Link href={`/auction/${item._id}`}>

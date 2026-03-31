@@ -1,3 +1,4 @@
+"use client";
 import { Search, Gavel } from "lucide-react";
 import Image from "next/image";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
@@ -5,42 +6,71 @@ import LineGraph from "@/components/LineGraph";
 import SearchInput from "@/components/SearchInput";
 import Link from "next/link";
 import NotificationsPanel from "@/components/NotificationsPanel";
-export default function DashboardContent() {
-  const completedAuctions = [
-    {
-      name: "Apple iPad 10.2",
-      finalBid: "$520",
-      bids: 18,
-      winner: "Alex",
-      img: "https://res.cloudinary.com/dudjdf428/image/upload/v1773597018/kool-c-vYZrIWIJ9mg-unsplash_co038x.jpg",
-    },
-    {
-      name: "Nike Air Jordan 1",
-      finalBid: "$340",
-      bids: 12,
-      winner: "Jordan",
-      img: "https://res.cloudinary.com/dudjdf428/image/upload/v1773499373/piyush-haswani-gAVIw1zs1fU-unsplash_thqw5v.jpg",
-    },
-    {
-      name: "Samsung Galaxy A51",
-      finalBid: "$290",
-      bids: 9,
-      winner: "Chris",
-      img: "https://images.unsplash.com/photo-1580910051074-3eb694886505",
-    },
-    {
-      name: "Apple TV 4K",
-      finalBid: "$210",
-      bids: 7,
-      winner: "Maya",
-      img: "https://images.unsplash.com/photo-1593784991095-a205069470b6",
-    },
-  ];
+import { useEffect, useState } from "react";
 
+export default function DashboardContent() {
+  const [auctions, setAuctions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [topBidders, setTopBidders] = useState([]);
+  const [completedAuctions, setCompletedAuctions] = useState([]);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/user");
+        const data = await res.json();
+        setUser(data.user);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      }
+    };
+    fetchUser();
+  }, []);
+  useEffect(() => {
+    const fetchAuctions = async () => {
+      try {
+        const res = await fetch("/api/auctions");
+        const data = await res.json();
+        setAuctions(data.auctions);
+      } catch (err) {
+        console.error("Error fetching auctions:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAuctions();
+  }, []);
+  useEffect(() => {
+    const fetchTopBidders = async () => {
+      const res = await fetch("/api/topbidders");
+      const data = await res.json();
+      setTopBidders(data.topBidders);
+    };
+
+    fetchTopBidders();
+  }, []);
+  useEffect(() => {
+    const fetchCompleted = async () => {
+      try {
+        const res = await fetch("/api/user/wonauctions");
+        const data = await res.json();
+        setCompletedAuctions(data.auctions || []);
+      } catch (err) {
+        console.error("Error fetching completed", err);
+        setCompletedAuctions([]);
+      }
+    };
+
+    fetchCompleted();
+  }, []);
+  const featuredAuction = auctions.length > 0 ? auctions[0] : null;
+  console.log(completedAuctions)
   return (
-    <div className="flex-1 bg-gray-100 min-h-screen p-8">
-      ```
+    <div className="flex-1 bg-gray-100 min-h-screen p-8 text-[#1F2937]">
       <StaggerGrid className="space-y-10">
+
         {/* TOP BAR */}
         <StaggerItem>
           <div className="flex items-center justify-between">
@@ -53,19 +83,20 @@ export default function DashboardContent() {
               <NotificationsPanel />
 
               <Link href={"/wallet"}>
-                <div className="bg-white px-4 py-2 rounded-xl shadow text-sm text-black font-medium">
-                  Wallet: $1,240
+                <div className="bg-white px-4 py-2 rounded-xl shadow text-sm font-medium">
+                  Wallet: ₹{user?.balance}
                 </div>
               </Link>
-              
-              <Link href={'/profile'}>
-              <Image
-                src="https://i.pravatar.cc/40"
-                width={36}
-                height={36}
-                alt="User Avatar"
-                className="rounded-full cursor-pointer"
-              />
+
+              <Link href={"/profile"}>
+                <img
+                  src={user?.avatar || user?.image || `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(user?.name || "User Profile")}`}
+                  width={36}
+                  height={36}
+                  alt="User"
+                  className="rounded-full cursor-pointer object-cover"
+                  referrerPolicy="no-referrer"
+                />
               </Link>
             </div>
           </div>
@@ -73,72 +104,97 @@ export default function DashboardContent() {
 
         {/* MAIN GRID */}
         <StaggerItem>
-          <div className="grid grid-cols-4 gap-6">
+          <div className="grid grid-cols-4 gap-6 ">
+
             {/* FEATURED AUCTION */}
-            <div className="col-span-2 bg-white rounded-2xl shadow p-4 text-black hover:shadow-xl">
-              <Image
-                src="https://images.unsplash.com/photo-1587614382346-4ec70e388b28"
-                width={800}
-                height={350}
-                alt="Auction Item"
-                className="rounded-xl h-56 w-full object-cover mb-4"
-              />
+            <div className="col-span-2 bg-white rounded-2xl shadow p-4">
 
-              <h2 className="text-lg font-semibold">Apple iPad 10.2</h2>
-
-              <p className="text-gray-500 text-sm mb-4">Seller: TechStore</p>
-
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <p className="text-gray-500 text-sm">Current Bid</p>
-                  <p className="font-bold text-lg">$320</p>
+              {loading ? (
+                <div className="animate-pulse">
+                  <div className="h-56 bg-gray-200 rounded-xl mb-4"></div>
+                  <div className="h-4 bg-gray-200 w-1/2 mb-2"></div>
+                  <div className="h-4 bg-gray-200 w-1/3"></div>
                 </div>
+              ) : featuredAuction ? (
+                <>
+                  <Image
+                    src={featuredAuction.image}
+                    width={800}
+                    height={350}
+                    alt={featuredAuction.title}
+                    className="rounded-xl h-56 w-full object-cover mb-4"
+                  />
 
-                <div className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
-                  Ends in 12h : 22m
-                </div>
-              </div>
+                  <h2 className="text-lg font-semibold">
+                    {featuredAuction.title}
+                  </h2>
 
-              <div className="flex gap-3">
-                <button className="border px-4 py-2 rounded-lg hover:bg-gray-100">
-                  View Auction
-                </button>
+                  <p className="text-gray-500 text-sm mb-4">
+                    Seller: {featuredAuction.seller}
+                  </p>
 
-                <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2">
-                  <Gavel size={16} />
-                  Place Bid
-                </button>
-              </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <p className="text-gray-500 text-sm">Current Bid</p>
+                      <p className="font-bold text-lg">
+                        ₹{featuredAuction.currentBid}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-100 px-3 py-1 rounded-lg text-sm">
+                      Ends:{" "}
+                      {new Date(
+                        featuredAuction.endTime
+                      ).toLocaleString()}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button className="border px-4 py-2 rounded-lg hover:bg-gray-100">
+                      View Auction
+                    </button>
+
+                    <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2">
+                      <Gavel size={16} />
+                      Place Bid
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p>No auctions found</p>
+              )}
             </div>
 
             {/* TOP BIDDERS */}
-            <div className="bg-white rounded-2xl shadow p-4 text-black hover:shadow-xl">
+            <div className="bg-white rounded-2xl shadow p-4">
               <h3 className="font-semibold mb-4">Top Bidders</h3>
 
-              {["Alex", "Maya", "Jordan", "Chris", "Sam"].map((name) => (
+              {topBidders.map((bidder, index) => (
                 <div
-                  key={name}
+                  key={index}
                   className="flex items-center justify-between mb-3 p-1 hover:bg-gray-100 rounded-lg"
                 >
                   <div className="flex items-center gap-2">
-                    <Image
-                      src={`https://i.pravatar.cc/40?u=${name}`}
+                    <img
+                      src={`https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(bidder.name)}`}
                       width={32}
                       height={32}
-                      alt={name}
-                      className="rounded-full"
+                      alt={bidder.name}
+                      className="rounded-full object-cover"
                     />
 
-                    <span className="text-sm">{name}</span>
+                    <span className="text-sm">{bidder.name}</span>
                   </div>
 
-                  <span className="text-xs text-gray-500">$1.2k bids</span>
+                  <span className="text-xs text-gray-500">
+                    ₹{bidder.totalAmount}
+                  </span>
                 </div>
               ))}
             </div>
 
             {/* AUCTION STATS */}
-            <div className="bg-white rounded-2xl shadow p-4 text-black hover:shadow-xl">
+            <div className="bg-white rounded-2xl shadow p-4">
               <h3 className="font-semibold mb-4">Auction Stats</h3>
 
               <div className="h-32 bg-gradient-to-r from-orange-200 to-yellow-200 rounded-lg mb-4">
@@ -158,46 +214,54 @@ export default function DashboardContent() {
 
                 <div className="flex justify-between">
                   <span>Total Spent</span>
-                  <span>$3,420</span>
+                  <span>₹3,420</span>
                 </div>
               </div>
             </div>
+
           </div>
         </StaggerItem>
-
-        {/* USER COMPLETED AUCTIONS */}
         <StaggerItem>
           <div className="text-black">
             <h2 className="text-xl font-semibold mb-6">
-              Your Top Completed Auctions
+              Your Completed Auctions
             </h2>
 
             <StaggerGrid className="grid grid-cols-4 gap-6">
-              {completedAuctions.map((auction, index) => (
+              {completedAuctions?.map((auction) => (
                 <StaggerItem
-                  key={index}
+                  key={auction._id}
                   className="bg-white rounded-xl shadow p-3
-              transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+          transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
                 >
                   <Image
-                    src={auction.img}
+                    src={auction.image}
                     width={400}
                     height={200}
-                    alt={auction.name}
+                    alt={auction.title}
                     className="rounded-lg h-32 w-full object-cover mb-3"
                   />
 
-                  <p className="text-sm text-gray-500">{auction.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {auction.title}
+                  </p>
 
                   <p className="font-semibold text-sm">
-                    Final Bid: {auction.finalBid}
+                    Final Bid: ₹{auction.currentBid}
                   </p>
 
                   <div className="flex justify-between items-center mt-2 text-xs text-gray-600">
-                    <span>{auction.bids} bids</span>
+                    <span>{auction.bids.length} bids</span>
 
-                    <span>Winner: {auction.winner}</span>
+                    <span>
+                      Winner: {auction.highestBidder?.name || "N/A"}
+                    </span>
                   </div>
+                  <Link href={`/auction/${auction._id}`}>
+                    <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2">
+                      View Auction
+                    </button>
+                  </Link>
                 </StaggerItem>
               ))}
             </StaggerGrid>

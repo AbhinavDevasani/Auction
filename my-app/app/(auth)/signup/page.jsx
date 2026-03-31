@@ -129,19 +129,6 @@ export default function SignUpPage() {
           Create Account
         </button>
       </form>
-
-      {/* Divider */}
-      <div className="flex items-center my-6">
-        <div className="flex-1 h-px bg-gray-200" />
-        <span className="px-3 text-gray-400 text-sm">OR</span>
-        <div className="flex-1 h-px bg-gray-200" />
-      </div>
-
-      {/* Google Button */}
-      <button className="w-full border border-gray-200 py-2.5 rounded-lg hover:bg-gray-50 transition">
-        Sign up with Google
-      </button>
-
       {/* Sign In Link */}
       <p className="text-center text-sm text-gray-500 mt-6">
         Already have an account?{" "}
