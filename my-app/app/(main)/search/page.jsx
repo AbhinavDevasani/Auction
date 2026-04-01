@@ -14,17 +14,23 @@ function SearchContent() {
 
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, statusFilter]);
 
   useEffect(() => {
     const fetchResults = async () => {
       setLoading(true);
 
       try {
-        const res = await fetch(`/api/auctions?q=${query}`);
-        console.log(res);
+        const res = await fetch(`/api/auctions?q=${query}&page=${page}&limit=8&status=${statusFilter}`);
         const data = await res.json();
-        console.log(data);
-        setResults(data.auctions);
+        setResults(data.auctions || []);
+        setTotalPages(data.totalPages || 1);
       } catch (err) {
         console.error(err);
       }
@@ -33,7 +39,7 @@ function SearchContent() {
     };
 
     fetchResults();
-  }, [query]);
+  }, [query, page, statusFilter]);
 
   return (
     <div className="bg-gray-100 min-h-screen px-8 py-12 text-[#1F2937]">
@@ -47,11 +53,25 @@ function SearchContent() {
             </div>
           </StaggerItem>
 
-          {/* SEARCH BAR */}
+          {/* SEARCH BAR & FILTERS */}
           <StaggerItem>
-            <div className="bg-white rounded-xl shadow px-4 py-3 flex items-center gap-3">
-              <Search size={20} className="text-gray-400" />
-              <SeachInput1 initialQuery={query} />
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 bg-white rounded-xl shadow px-4 py-3 flex items-center gap-3">
+                <Search size={20} className="text-gray-400" />
+                <SeachInput1 initialQuery={query} />
+              </div>
+              <div className="bg-white rounded-xl shadow px-4 py-3 flex items-center">
+                <span className="text-gray-500 mr-3 text-sm font-medium">Status:</span>
+                <select 
+                  value={statusFilter} 
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="bg-transparent outline-none cursor-pointer text-[#1F2937]"
+                >
+                  <option value="all">All</option>
+                  <option value="active">Active Bids</option>
+                  <option value="ended">Ended Bids</option>
+                </select>
+              </div>
             </div>
           </StaggerItem>
 
@@ -79,9 +99,10 @@ function SearchContent() {
                         />
                       </div>
 
-                      <h3 className="mt-3 font-semibold">{item.title}</h3>
-
-                      <p className="text-gray-500 text-sm">Current Bid</p>
+                      <div className="flex justify-between items-start mt-3">
+                        <h3 className="font-semibold line-clamp-1 flex-1 pr-2">{item.title}</h3>
+                      </div>
+                      <p className="text-gray-500 text-sm mt-2">Current Bid</p>
 
                       <p className="font-bold">
                         ₹{item.currentBid || item.startingPrice}
@@ -98,6 +119,31 @@ function SearchContent() {
               </StaggerGrid>
             )}
           </StaggerItem>
+
+          {/* PAGINATION */}
+          {totalPages > 1 && (
+            <StaggerItem>
+              <div className="flex justify-center items-center mt-2 gap-4 pb-12">
+                <button 
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 rounded-lg bg-white shadow text-gray-700 disabled:opacity-50 hover:bg-gray-50 transition"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-gray-600 font-medium">
+                  Page {page} of {totalPages}
+                </span>
+                <button 
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="px-4 py-2 rounded-lg bg-white shadow text-gray-700 disabled:opacity-50 hover:bg-gray-50 transition"
+                >
+                  Next
+                </button>
+              </div>
+            </StaggerItem>
+          )}
         </StaggerGrid>
       </div>
     </div>

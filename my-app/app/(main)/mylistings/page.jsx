@@ -3,9 +3,28 @@
 import Image from "next/image"
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function MyListingsPage() {
+  const router = useRouter()
   const [listings, setListings] = useState([])
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this auction?")) {
+      try {
+        const res = await fetch(`/api/auctions/${id}`, { method: 'DELETE' })
+        const data = await res.json()
+        if (data.success) {
+          setListings(prev => prev.filter(item => item._id !== id))
+        } else {
+          alert(data.error || "Failed to delete")
+        }
+      } catch (error) {
+        console.error(error)
+        alert("Failed to delete")
+      }
+    }
+  }
 
   const getListings = async () => {
     try {
@@ -93,13 +112,13 @@ export default function MyListingsPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center mt-2 text-xs">
+                <div className="flex items-center w-full mt-2 text-xs">
                   {!isLocked && item.status !== "ended" ? (
                     <>
-                      <button className="text-orange-500 hover:underline">
+                      <button onClick={() => router.push(`/mylistings/edit/${item._id}`)} className="text-orange-500 hover:underline">
                         Edit
                       </button>
-                      <button className="text-red-500 ml-2 hover:underline">
+                      <button onClick={() => handleDelete(item._id)} className="text-red-500 ml-2 hover:underline">
                         Delete
                       </button>
                     </>
@@ -111,7 +130,7 @@ export default function MyListingsPage() {
                     </span>
                   )}
 
-                  <button className="ml-auto text-gray-600 hover:underline">
+                  <button onClick={() => router.push(`/auction/${item._id}`)} className="ml-auto text-gray-600 hover:underline">
                     View
                   </button>
                 </div>
