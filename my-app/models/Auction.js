@@ -61,6 +61,10 @@ const AuctionSchema = new mongoose.Schema(
       enum: ["active", "ended"],
       default: "active",
     },
+    collected: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
