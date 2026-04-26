@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid"
-import { User, Mail, Phone, MapPin, Camera } from "lucide-react"
+import { User, Mail, Phone, MapPin, Camera, X } from "lucide-react"
+import EmailOTP from "@/components/EmailOTP"
 
 export default function ProfilePage() {
 
@@ -14,6 +15,7 @@ export default function ProfilePage() {
     avatar: ""
   })
   const [uploading, setUploading] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [stats, setStats] = useState({
     wonAuctions: 0,
     activeBids: 0,
@@ -238,14 +240,23 @@ export default function ProfilePage() {
                     Email
                   </label>
 
-                  <div className="relative mt-1">
-                    <Mail className="absolute left-3 top-3 text-gray-400" size={18}/>
-                    <input
-                      name="email"
-                      value={user.email}
-                      onChange={handleChange}
-                      className="w-full border rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    />
+                  <div className="relative mt-1 flex gap-2">
+                    <div className="relative flex-1">
+                      <Mail className="absolute left-3 top-3 text-gray-400" size={18}/>
+                      <input
+                        name="email"
+                        value={user.email}
+                        onChange={handleChange}
+                        className="w-full border rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowVerifyModal(true)}
+                      className="bg-orange-100 text-orange-600 px-4 py-2 rounded-lg font-medium hover:bg-orange-200 transition whitespace-nowrap"
+                    >
+                      Verify
+                    </button>
                   </div>
                 </div>
 
@@ -297,6 +308,25 @@ export default function ProfilePage() {
         </StaggerGrid>
 
       </div>
+
+      {showVerifyModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="relative max-w-md w-full">
+            <button 
+              onClick={() => setShowVerifyModal(false)} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 z-10 transition p-2 bg-gray-100/50 hover:bg-gray-200 rounded-full"
+            >
+              <X size={20} />
+            </button>
+            <EmailOTP 
+              initialEmail={user.email} 
+              onVerified={() => {
+                setTimeout(() => setShowVerifyModal(false), 2000);
+              }} 
+            />
+          </div>
+        </div>
+      )}
 
     </div>
   )

@@ -26,41 +26,41 @@ export async function POST(req) {
       return NextResponse.json({ error: "Auction not found" }, { status: 404 });
     }
 
-    if (auction.highestBidder?.toString() !== userId) {
+    if (auction.highestBidder?.toString() === userId) {
       return NextResponse.json(
-        { error: "You are not the winner of this auction" },
+        { error: "You are the highest bidder. You cannot collect credits now." },
         { status: 403 }
       );
     }
 
-    const isEnded =
-      auction.status === "ended" || new Date() > new Date(auction.endTime);
-    if (!isEnded) {
+    const lockedEntry = auction.lockedAmounts?.find(
+      (entry) => entry.user.toString() === userId
+    );
+    const refundAmount = lockedEntry ? lockedEntry.amount : 0;
+
+    if (refundAmount <= 0) {
       return NextResponse.json(
-        { error: "Auction has not ended yet" },
+        { error: "You have no credits to collect for this auction" },
         { status: 400 }
       );
     }
 
-    if (auction.collected) {
-      return NextResponse.json(
-        { error: "Credits have already been collected" },
-        { status: 400 }
-      );
-    }
-    const refundAmount = auction.currentBid;
-
+    // Refund the locked amount to the user
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $inc: { balance: refundAmount } },
       { new: true }
     );
 
-    await Auction.findByIdAndUpdate(auctionId, { collected: true });
+    // Set the locked amount to 0 for this user
+    await Auction.findOneAndUpdate(
+      { _id: auctionId, "lockedAmounts.user": userId },
+      { $set: { "lockedAmounts.$.amount": 0 } }
+    );
 
     await Transaction.create({
       user: userId,
-      type: "Auction Win - Credit Collected",
+      type: "Outbid Refund Collected",
       amount: refundAmount,
       reference: auctionId,
     });
@@ -69,6 +69,7 @@ export async function POST(req) {
       message: "Credits collected successfully",
       balance: updatedUser.balance,
       collected: true,
+      refundAmount,
     });
   } catch (err) {
     console.error(err);

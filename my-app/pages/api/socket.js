@@ -1,9 +1,11 @@
 import { Server } from "socket.io";
-import { getToken } from "next-auth/jwt";
+import { getToken, decode } from "next-auth/jwt";
 import connectDB from "@/lib/db";
 import Auction from "@/models/Auction";
 import User from "@/models/User";
 import Transaction from "@/models/Transaction";
+
+
 
 export const config = {
   api: {
@@ -12,34 +14,60 @@ export const config = {
 };
 
 export default async function handler(req, res) {
+  // Fix Hot-Module-Reload caching: if old socket instance exists on the wrong path, clear it out.
+  if (res.socket.server.io && res.socket.server.io._path !== "/api/socket_io") {
+    console.log("Cleaning up old socket attached to wrong path...");
+    res.socket.server.io.close();
+    delete res.socket.server.io;
+  }
+
   if (!res.socket.server.io) {
     console.log("Initializing Socket.io server...");
     const io = new Server(res.socket.server, {
-      path: "/api/socket",
-      addTrailingSlash: false,
-    });
+  path: "/api/socket_io",
+  addTrailingSlash: false,
+  cors: {
+    origin: "*",
+    credentials: true,
+  },
+});
 
     // Middleware for authentication
     io.use(async (socket, next) => {
-      try {
-        // In Next-Auth v4, getToken works by parsing the request cookies
-        const token = await getToken({
-          req: socket.request,
+  try {
+    console.log("👉 Cookies:", socket.request.headers.cookie)
+    console.log("👉 Headers:", socket.request.headers)
+
+    let token = await getToken({
+      req: socket.request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
+    console.log("👉 Token from getToken:", token); // ✅ ADD
+
+    if (!token) {
+      const cookieHeader = socket.request.headers.cookie || "";
+      const match = cookieHeader.match(/(?:__Secure-)?next-auth\.session-token=([^;]+)/);
+
+      if (match) {
+        token = await decode({
+          token: match[1],
           secret: process.env.NEXTAUTH_SECRET,
         });
-
-        if (token) {
-          // Attach user ID to the socket
-          socket.userId = token.id || token.userId || token.sub;
-        }
-        // Allow connection even if unauthorized, so guests can see live updates
-        next();
-      } catch (err) {
-        console.error("Socket Auth Error:", err);
-        // Still allow connection to view
-        next();
+        console.log("👉 Token from manual decode:", token); // ✅ ADD
       }
-    });
+    }
+
+    if (token) {
+      socket.userId = token.id || token.userId || token.sub;
+    }
+
+    next();
+  } catch (err) {
+    console.error("Socket Auth Error:", err);
+    next();
+  }
+});
 
     io.on("connection", (socket) => {
       console.log(`Socket connected: ${socket.id} (User: ${socket.userId || 'Guest'})`);
@@ -214,5 +242,5 @@ export default async function handler(req, res) {
     res.socket.server.io = io;
   }
   
-  res.end();
+  res.status(200).send("Socket Initialized");
 }

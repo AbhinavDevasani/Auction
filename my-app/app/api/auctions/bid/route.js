@@ -34,13 +34,6 @@ export async function POST(req) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (dbUser.balance < bidAmount) {
-      return NextResponse.json(
-        { error: "Insufficient balance. Please add funds to your wallet." },
-        { status: 400 }
-      );
-    }
-
     const auction = await Auction.findById(auctionId);
 
     if (!auction) {
@@ -67,48 +60,57 @@ export async function POST(req) {
       );
     }
 
-    // --- Previous highest bidder to refund ---
-    const prevHighestBidder = auction.highestBidder
-      ? auction.highestBidder.toString()
-      : null;
-    const prevBidAmount = auction.currentBid || 0;
+    // Find the user's previously locked amount
+    const lockedEntry = auction.lockedAmounts?.find(
+      (entry) => entry.user.toString() === userId
+    );
+    const lockedAmount = lockedEntry ? lockedEntry.amount : 0;
+    
+    // Amount the user actually needs to pay is the difference
+    const amountToPay = bidAmount - lockedAmount;
 
-    // Debit the bid amount from the current bidder's wallet
-    await User.findByIdAndUpdate(userId, { $inc: { balance: -bidAmount } });
+    if (dbUser.balance < amountToPay) {
+      return NextResponse.json(
+        { error: `Insufficient balance. You need ₹${amountToPay} more to place this bid.` },
+        { status: 400 }
+      );
+    }
 
-    await Transaction.create({
-      user: userId,
-      type: "Bid Placed",
-      amount: -bidAmount,
-      reference: auctionId,
-    });
-
-    // If there was a previous highest bidder (and it's a different user), refund them
-    if (prevHighestBidder && prevHighestBidder !== userId && prevBidAmount > 0) {
-      await User.findByIdAndUpdate(prevHighestBidder, {
-        $inc: { balance: prevBidAmount },
-      });
+    // Debit the required amount from the current bidder's wallet
+    if (amountToPay > 0) {
+      await User.findByIdAndUpdate(userId, { $inc: { balance: -amountToPay } });
 
       await Transaction.create({
-        user: prevHighestBidder,
-        type: "Outbid Refund",
-        amount: prevBidAmount,
+        user: userId,
+        type: "Bid Placed",
+        amount: -amountToPay,
         reference: auctionId,
       });
     }
 
-    // If the same user is raising their own bid, refund their previous bid first
-    if (prevHighestBidder && prevHighestBidder === userId && prevBidAmount > 0) {
-      await User.findByIdAndUpdate(userId, {
-        $inc: { balance: prevBidAmount },
-      });
+    // Update the lockedAmounts array
+    const updateDoc = {
+      $set: {
+        currentBid: bidAmount,
+        highestBidder: userId,
+      },
+      $push: {
+        bids: {
+          user: userId,
+          amount: bidAmount,
+        },
+      },
+    };
 
-      await Transaction.create({
-        user: userId,
-        type: "Previous Bid Refund",
-        amount: prevBidAmount,
-        reference: auctionId,
-      });
+    if (lockedEntry) {
+      const lockedIndex = auction.lockedAmounts.findIndex(
+        (entry) => entry.user.toString() === userId
+      );
+      if (lockedIndex !== -1) {
+        updateDoc.$set[`lockedAmounts.${lockedIndex}.amount`] = bidAmount;
+      }
+    } else {
+      updateDoc.$push.lockedAmounts = { user: userId, amount: bidAmount };
     }
 
     // Update auction
@@ -117,18 +119,7 @@ export async function POST(req) {
         _id: auctionId,
         currentBid: { $lt: bidAmount },
       },
-      {
-        $set: {
-          currentBid: bidAmount,
-          highestBidder: userId,
-        },
-        $push: {
-          bids: {
-            user: userId,
-            amount: bidAmount,
-          },
-        },
-      },
+      updateDoc,
       { new: true }
     )
       .populate("highestBidder", "name")

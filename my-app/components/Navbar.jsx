@@ -34,6 +34,17 @@ export default function Sidebar() {
       }
     }
     fetchUser();
+
+    const handleBalanceEvent = (e) => {
+      if (e.detail && e.detail.newBalance !== undefined) {
+        setUser((prev) => prev ? { ...prev, balance: e.detail.newBalance } : prev);
+      } else {
+        fetchUser();
+      }
+    };
+
+    window.addEventListener("balanceUpdated", handleBalanceEvent);
+    return () => window.removeEventListener("balanceUpdated", handleBalanceEvent);
   }, []);
 
   const menu = [

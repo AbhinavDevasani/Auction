@@ -61,6 +61,12 @@ const AuctionSchema = new mongoose.Schema(
       enum: ["active", "ended"],
       default: "active",
     },
+    lockedAmounts: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        amount: { type: Number, default: 0 },
+      }
+    ],
     collected: {
       type: Boolean,
       default: false,

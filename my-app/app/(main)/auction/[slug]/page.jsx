@@ -49,6 +49,27 @@ export default function AuctionItemPage() {
   }, [slug]);
 
   useEffect(() => {
+    const handleBalanceEvent = async (e) => {
+      if (e.detail && e.detail.newBalance !== undefined) {
+        setUser((prev) => prev ? { ...prev, balance: e.detail.newBalance } : prev);
+      } else {
+        try {
+          const resUser = await fetch("/api/user");
+          if (resUser.ok) {
+            const userData = await resUser.json();
+            setUser(userData.user);
+          }
+        } catch (err) {
+          console.error("Error fetching user data:", err);
+        }
+      }
+    };
+
+    window.addEventListener("balanceUpdated", handleBalanceEvent);
+    return () => window.removeEventListener("balanceUpdated", handleBalanceEvent);
+  }, []);
+
+  useEffect(() => {
     let socket;
 
     const setupSocket = async () => {
@@ -57,15 +78,15 @@ export default function AuctionItemPage() {
 
       // DO NOT force transports: ["websocket"] explicitly. Allow negotiation to prevent 400 Bad Request
       socket = io({
-        path: "/api/socket",
-        addTrailingSlash: false,
+        path: "/api/socket_io",
         withCredentials: true,
+        transports: ["websocket", "polling"],
       });
 
       socketRef.current = socket;
-
+ 
       socket.on("connect", () => {
-        console.log("✅ Connected:", socket.id);
+        console.log("Connected:", socket.id);
         socket.emit("joinAuction", slug);
       });
 
@@ -78,6 +99,7 @@ export default function AuctionItemPage() {
 
       socket.on("outbidNotification", (data) => {
         alert(`You have been outbid! ₹${data.newBid}`);
+        window.dispatchEvent(new CustomEvent("balanceUpdated"));
       });
       
       socket.on("connect_error", (err) => {
@@ -85,7 +107,7 @@ export default function AuctionItemPage() {
       });
     };
 
-    if (slug) setupSocket();
+    if (slug && !socketRef.current) setupSocket();
 
     return () => {
       if (socket) socket.disconnect();
@@ -146,6 +168,7 @@ export default function AuctionItemPage() {
           // Only the user who placed the bid updates their balance
           if (response.balance !== undefined) {
             setUser((prev) => (prev ? { ...prev, balance: response.balance } : prev));
+            window.dispatchEvent(new CustomEvent("balanceUpdated", { detail: { newBalance: response.balance } }));
           }
           setTimeout(() => setBidSuccess(false), 3000);
         }
@@ -166,7 +189,18 @@ export default function AuctionItemPage() {
       if (res.ok) {
         setCollected(true);
         setUser((prev) => prev ? { ...prev, balance: data.balance } : prev);
-        alert(`₹${auction.currentBid} has been credited to your wallet!`);
+        window.dispatchEvent(new CustomEvent("balanceUpdated", { detail: { newBalance: data.balance } }));
+        // Also update the local auction state to reflect the collection
+        setAuction((prev) => {
+          if (!prev) return prev;
+          const newLockedAmounts = prev.lockedAmounts?.map(entry => 
+            (entry.user === user._id || entry.user?._id === user._id) 
+              ? { ...entry, amount: 0 } 
+              : entry
+          ) || [];
+          return { ...prev, lockedAmounts: newLockedAmounts };
+        });
+        alert(`₹${data.refundAmount} has been credited to your wallet!`);
       } else {
         alert(data.error || "Failed to collect credits");
       }
@@ -215,6 +249,14 @@ export default function AuctionItemPage() {
     auction && (auction.status === "ended" || new Date() > new Date(auction.endTime));
   const isWinner =
     user && auction?.highestBidder?._id === user._id;
+
+  const userLockedAmount = user && auction?.lockedAmounts 
+    ? auction.lockedAmounts.find(entry => 
+        entry.user === user._id || entry.user?._id === user._id
+      )?.amount || 0 
+    : 0;
+
+  const canCollect = userLockedAmount > 0 && !isWinner;
 
   if (!auction) return <p className="p-10">Loading...</p>;
 
@@ -345,11 +387,11 @@ export default function AuctionItemPage() {
                 </div>
               )}
 
-              {/* Collect Credits Button — always visible, functional only for winner */}
+              {/* Collect Credits Button — available for outbid users with locked funds */}
               {collectConfirm ? (
                 <div className="border border-orange-300 bg-orange-50 rounded-xl p-4 space-y-3">
                   <p className="text-sm font-medium text-orange-800">
-                    Collect <span className="font-bold">₹{currentBid}</span> auction credits to your wallet?
+                    Collect <span className="font-bold">₹{userLockedAmount}</span> refunded credits to your wallet?
                   </p>
                   <div className="flex gap-3">
                     <button
@@ -368,33 +410,33 @@ export default function AuctionItemPage() {
                   </div>
                 </div>
               ) : (
-                <button
-                  onClick={() => {
-                    if (isAuctionEnded && isWinner && !collected) {
-                      setCollectConfirm(true);
-                    }
-                  }}
-                  disabled={collected || !isAuctionEnded || !isWinner}
-                  className={`w-full border py-3 rounded-lg flex items-center justify-center gap-2 transition
-                    ${collected
-                      ? "bg-green-50 border-green-300 text-green-600 cursor-not-allowed"
-                      : isAuctionEnded && isWinner
-                      ? "border-orange-500 text-orange-500 hover:bg-orange-50 cursor-pointer"
-                      : "border-gray-300 text-gray-400 cursor-not-allowed"
-                    }`}
-                >
-                  {collected ? (
-                    <>
-                      <CheckCircle2 size={18} />
-                      Credits Collected
-                    </>
-                  ) : (
-                    <>
-                      <Coins size={18} />
-                      Collect Auction Credits
-                    </>
-                  )}
-                </button>
+                canCollect && (
+                  <button
+                    onClick={() => {
+                      if (!collected) {
+                        setCollectConfirm(true);
+                      }
+                    }}
+                    disabled={collected}
+                    className={`w-full border py-3 rounded-lg flex items-center justify-center gap-2 transition
+                      ${collected
+                        ? "bg-green-50 border-green-300 text-green-600 cursor-not-allowed"
+                        : "border-orange-500 text-orange-500 hover:bg-orange-50 cursor-pointer"
+                      }`}
+                  >
+                    {collected ? (
+                      <>
+                        <CheckCircle2 size={18} />
+                        Refund Collected
+                      </>
+                    ) : (
+                      <>
+                        <Coins size={18} />
+                        Collect Refund (₹{userLockedAmount})
+                      </>
+                    )}
+                  </button>
+                )
               )}
             </div>
           </StaggerItem>
