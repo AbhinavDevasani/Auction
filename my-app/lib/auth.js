@@ -36,6 +36,10 @@ export const authOptions = {
           throw new Error("Invalid login method. Please sign in using Google.");
         }
 
+        if (!user.isVerified) {
+          throw new Error("Please verify your email to login. Use the sign-up page or verify email page.");
+        }
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
           throw new Error("Invalid password");
@@ -69,6 +73,7 @@ export const authOptions = {
             email: user.email,
             avatar: user.image || profile?.picture || "",
             password: null,
+            isVerified: true,
           });
         } else {
           // Update avatar if it exists

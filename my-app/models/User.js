@@ -23,6 +23,10 @@ const UserSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
     savedItems: [
       {
         type: mongoose.Schema.Types.ObjectId,

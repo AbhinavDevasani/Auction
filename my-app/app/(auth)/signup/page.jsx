@@ -3,11 +3,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, User } from "lucide-react";
 import Link from "next/link";
+import EmailOTP from "@/components/EmailOTP";
+
 export default function SignUpPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showOtp, setShowOtp] = useState(false);
 
   const router = useRouter();
   const handleSubmit = async (e) => {
@@ -34,13 +37,25 @@ export default function SignUpPage() {
         return;
       }
 
-      alert("Account created successfully");
-      router.push("/signin");
+      // alert("Account created successfully");
+      setShowOtp(true);
     } catch (err) {
       console.error(err);
       alert("Something went wrong");
     }
   };
+
+  if (showOtp) {
+    return (
+      <div className="w-full flex justify-center items-center">
+        <EmailOTP 
+          initialEmail={email} 
+          onVerified={() => router.push("/signin")} 
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-[#1F2937]">
       <div className="flex items-center gap-3 mb-6 justify-center">

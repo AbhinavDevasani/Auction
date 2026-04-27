@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Otp from "@/models/Otp";
+import User from "@/models/User";
 
 export async function POST(req) {
   try {
@@ -31,8 +32,7 @@ export async function POST(req) {
     // Success! Clean up the OTP
     await Otp.deleteOne({ email });
 
-    // TODO: Perform any additional logic here, like marking a User model as verified.
-    // Example: await User.findOneAndUpdate({ email }, { isEmailVerified: true });
+    await User.findOneAndUpdate({ email }, { isVerified: true });
 
     return NextResponse.json({ success: true, message: "Email verified successfully!" }, { status: 200 });
   } catch (error) {

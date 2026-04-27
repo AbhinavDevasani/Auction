@@ -23,6 +23,14 @@ export default function EmailOTP({ initialEmail = "", onVerified }) {
     return () => clearInterval(timer);
   }, [cooldown]);
 
+  // Automatically send OTP if initialEmail is provided on mount
+  useEffect(() => {
+    if (initialEmail && step === 1) {
+      handleSendOTP();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSendOTP = async (e) => {
     e?.preventDefault();
     if (!email) {
