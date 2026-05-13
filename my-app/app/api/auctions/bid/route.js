@@ -4,6 +4,15 @@ import User from "@/models/User";
 import Transaction from "@/models/Transaction";
 import { verifyToken } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import Pusher from "pusher";
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+  useTLS: true,
+});
 
 export async function POST(req) {
   try {
@@ -40,7 +49,7 @@ export async function POST(req) {
       return NextResponse.json({ error: "Auction not found" }, { status: 404 });
     }
 
-    if (auction.status !== "active" || new Date() > auction.endTime) {
+    if (auction.status !== "active" || new Date() > new Date(auction.endTime)) {
       return NextResponse.json({ error: "Auction ended" }, { status: 400 });
     }
 
@@ -59,6 +68,9 @@ export async function POST(req) {
         { status: 400 }
       );
     }
+
+    // Capture previous highest bidder for notification
+    const prevHighestBidder = auction.highestBidder ? auction.highestBidder.toString() : null;
 
     // Find the user's previously locked amount
     const lockedEntry = auction.lockedAmounts?.find(
@@ -127,7 +139,9 @@ export async function POST(req) {
 
     if (!updatedAuction) {
       // Race condition: someone else placed a higher bid at the same time — refund this user
-      await User.findByIdAndUpdate(userId, { $inc: { balance: bidAmount } });
+      if (amountToPay > 0) {
+         await User.findByIdAndUpdate(userId, { $inc: { balance: amountToPay } });
+      }
       return NextResponse.json(
         { error: "Bid must be higher than current bid" },
         { status: 400 }
@@ -137,7 +151,20 @@ export async function POST(req) {
     // Return updated balance too
     const updatedUser = await User.findById(userId).select("balance");
 
+    // Trigger Pusher events
+    await pusher.trigger(`auction-${auctionId}`, "bidUpdate", {
+      auction: updatedAuction,
+    });
+
+    if (prevHighestBidder && prevHighestBidder !== userId) {
+      await pusher.trigger(`user-${prevHighestBidder}`, "outbidNotification", {
+        auctionId,
+        newBid: bidAmount,
+      });
+    }
+
     return NextResponse.json({
+      success: true,
       auction: updatedAuction,
       balance: updatedUser.balance,
     });

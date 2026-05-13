@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
-import { io } from "socket.io-client";
+import Pusher from "pusher-js";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 import { Clock, Gavel, Coins, User as UserIcon, Bookmark, AlertCircle, CheckCircle2 } from "lucide-react";
 
@@ -19,7 +19,7 @@ export default function AuctionItemPage() {
   const [collectLoading, setCollectLoading] = useState(false);
   const [collected, setCollected] = useState(false);
   const [collectConfirm, setCollectConfirm] = useState(false);
-  const socketRef = useRef(null);
+  const pusherRef = useRef(null);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -70,49 +70,44 @@ export default function AuctionItemPage() {
   }, []);
 
   useEffect(() => {
-    let socket;
+    if (!slug) return;
 
-    const setupSocket = async () => {
-      // Warm up the Next.js API route to initialize the global socket object on res.socket.server.io
-      await fetch("/api/socket");
+    Pusher.logToConsole = false;
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_APP_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+    });
+    pusherRef.current = pusher;
 
-      // DO NOT force transports: ["websocket"] explicitly. Allow negotiation to prevent 400 Bad Request
-      socket = io({
-        path: "/api/socket_io",
-        withCredentials: true,
-        transports: ["websocket", "polling"],
-      });
-
-      socketRef.current = socket;
- 
-      socket.on("connect", () => {
-        console.log("Connected:", socket.id);
-        socket.emit("joinAuction", slug);
-      });
-
-      socket.on("bidUpdate", (data) => {
-        if (data.auction) {
-          setAuction(data.auction);
-          setCollected(data.auction.collected || false);
-        }
-      });
-
-      socket.on("outbidNotification", (data) => {
-        alert(`You have been outbid! ₹${data.newBid}`);
-        window.dispatchEvent(new CustomEvent("balanceUpdated"));
-      });
-      
-      socket.on("connect_error", (err) => {
-        console.error("Socket error", err);
-      });
-    };
-
-    if (slug && !socketRef.current) setupSocket();
+    const auctionChannel = pusher.subscribe(`auction-${slug}`);
+    auctionChannel.bind("bidUpdate", (data) => {
+      if (data.auction) {
+        setAuction(data.auction);
+        setCollected(data.auction.collected || false);
+      }
+    });
 
     return () => {
-      if (socket) socket.disconnect();
+      pusher.unsubscribe(`auction-${slug}`);
+      pusher.disconnect();
+      pusherRef.current = null;
     };
   }, [slug]);
+
+  useEffect(() => {
+    if (!user?._id || !pusherRef.current) return;
+
+    const userChannel = pusherRef.current.subscribe(`user-${user._id}`);
+    userChannel.bind("outbidNotification", (data) => {
+      if (data.auctionId === slug) {
+        alert(`You have been outbid! ₹${data.newBid}`);
+        window.dispatchEvent(new CustomEvent("balanceUpdated"));
+      }
+    });
+
+    return () => {
+      pusherRef.current?.unsubscribe(`user-${user._id}`);
+    };
+  }, [user?._id, slug]);
 
   const handleSave = async () => {
     try {
@@ -151,29 +146,34 @@ export default function AuctionItemPage() {
       return;
     }
 
-    if (!socketRef.current) {
+    if (!pusherRef.current) {
       setBidError("Real-time connection not established. Try refreshing.");
       return;
     }
 
-    socketRef.current.emit(
-      "placeBid",
-      { auctionId: slug, amount: bidAmount },
-      (response) => {
-        if (response && response.error) {
-          setBidError(response.error);
-        } else if (response && response.success) {
-          setBid("");
-          setBidSuccess(true);
-          // Only the user who placed the bid updates their balance
-          if (response.balance !== undefined) {
-            setUser((prev) => (prev ? { ...prev, balance: response.balance } : prev));
-            window.dispatchEvent(new CustomEvent("balanceUpdated", { detail: { newBalance: response.balance } }));
-          }
-          setTimeout(() => setBidSuccess(false), 3000);
+    try {
+      const res = await fetch("/api/auctions/bid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ auctionId: slug, amount: bidAmount }),
+      });
+      const response = await res.json();
+
+      if (!res.ok) {
+        setBidError(response.error || "Failed to place bid");
+      } else {
+        setBid("");
+        setBidSuccess(true);
+        if (response.balance !== undefined) {
+          setUser((prev) => (prev ? { ...prev, balance: response.balance } : prev));
+          window.dispatchEvent(new CustomEvent("balanceUpdated", { detail: { newBalance: response.balance } }));
         }
+        setTimeout(() => setBidSuccess(false), 3000);
       }
-    );
+    } catch (err) {
+      console.error(err);
+      setBidError("Network error while placing bid.");
+    }
   };
 
   const handleCollect = async () => {
