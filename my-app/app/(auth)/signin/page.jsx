@@ -12,28 +12,27 @@ const [password, setPassword] = useState("");
 const router = useRouter();
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (res?.error) {
-      alert(res.error);
-      return;
+      if (res?.error) {
+        alert(res.error);
+        return;
+      }
+      
+      alert("Login successful");
+      window.location.href = "/dashboard";
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong");
     }
-    
-    alert("Login successful");
-    router.push("/dashboard");
-    router.refresh();
-  } catch (err) {
-    console.error(err);
-    alert("Something went wrong");
-  }
-};
+  };
   return (
     <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 text-[#1F2937]">
       

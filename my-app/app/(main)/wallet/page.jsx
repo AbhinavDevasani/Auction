@@ -117,6 +117,14 @@ export default function WalletPage() {
     }
   }
 
+  const totalDeposits = transactions
+    .filter(tx => tx.amount > 0)
+    .reduce((sum, tx) => sum + tx.amount, 0);
+
+  const totalSpent = transactions
+    .filter(tx => tx.amount < 0)
+    .reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+
   return (
     <div className="bg-gray-100 min-h-screen p-8 text-black">
       <StaggerGrid className="max-w-5xl mx-auto space-y-8">
@@ -153,12 +161,12 @@ export default function WalletPage() {
             
             <div className="bg-white rounded-xl shadow p-4">
               <p className="text-gray-500 text-sm">Total Deposits</p>
-              <p className="font-bold text-lg">₹1,620</p>
+              <p className="font-bold text-lg">₹{totalDeposits}</p>
             </div>
 
             <div className="bg-white rounded-xl shadow p-4">
               <p className="text-gray-500 text-sm">Total Spent</p>
-              <p className="font-bold text-lg">₹380</p>
+              <p className="font-bold text-lg">₹{totalSpent}</p>
             </div>
 
             <div className="bg-white rounded-xl shadow p-4">

@@ -150,14 +150,18 @@ export default function DashboardContent() {
                   </div>
 
                   <div className="flex gap-3">
-                    <button className="border px-4 py-2 rounded-lg hover:bg-gray-100">
-                      View Auction
-                    </button>
+                    <Link href={`/auction/${featuredAuction._id}`}>
+                      <button className="border px-4 py-2 rounded-lg hover:bg-gray-100">
+                        View Auction
+                      </button>
+                    </Link>
 
-                    <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2">
-                      <Gavel size={16} />
-                      Place Bid
-                    </button>
+                    <Link href={`/auction/${featuredAuction._id}`}>
+                      <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2">
+                        <Gavel size={16} />
+                        Place Bid
+                      </button>
+                    </Link>
                   </div>
                 </>
               ) : (
@@ -227,44 +231,51 @@ export default function DashboardContent() {
               Your Completed Auctions
             </h2>
 
-            <StaggerGrid className="grid grid-cols-4 gap-6">
-              {completedAuctions?.map((auction) => (
-                <StaggerItem
-                  key={auction._id}
-                  className="bg-white rounded-xl shadow p-3
-          transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                >
-                  <Image
-                    src={auction.image}
-                    width={400}
-                    height={200}
-                    alt={auction.title}
-                    className="rounded-lg h-32 w-full object-cover mb-3"
-                  />
+            {!completedAuctions || completedAuctions.length === 0 ? (
+              <div className="bg-white rounded-xl shadow p-8 text-center text-gray-500">
+                <p className="text-lg font-medium text-gray-700">No completed auctions</p>
+                <p className="text-sm">You haven't won any auctions yet.</p>
+              </div>
+            ) : (
+              <StaggerGrid className="grid grid-cols-4 gap-6">
+                {completedAuctions.map((auction) => (
+                  <StaggerItem
+                    key={auction._id}
+                    className="bg-white rounded-xl shadow p-3
+            transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                  >
+                    <Image
+                      src={auction.image}
+                      width={400}
+                      height={200}
+                      alt={auction.title}
+                      className="rounded-lg h-32 w-full object-cover mb-3"
+                    />
 
-                  <p className="text-sm text-gray-500">
-                    {auction.title}
-                  </p>
+                    <p className="text-sm text-gray-500">
+                      {auction.title}
+                    </p>
 
-                  <p className="font-semibold text-sm">
-                    Final Bid: ₹{auction.currentBid}
-                  </p>
+                    <p className="font-semibold text-sm">
+                      Final Bid: ₹{auction.currentBid}
+                    </p>
 
-                  <div className="flex justify-between items-center mt-2 text-xs text-gray-600">
-                    <span>{auction.bids.length} bids</span>
+                    <div className="flex justify-between items-center mt-2 text-xs text-gray-600">
+                      <span>{auction.bids.length} bids</span>
 
-                    <span>
-                      Winner: {auction.highestBidder?.name || "N/A"}
-                    </span>
-                  </div>
-                  <Link href={`/auction/${auction._id}`}>
-                    <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2">
-                      View Auction
-                    </button>
-                  </Link>
-                </StaggerItem>
-              ))}
-            </StaggerGrid>
+                      <span>
+                        Winner: {auction.highestBidder?.name || "N/A"}
+                      </span>
+                    </div>
+                    <Link href={`/auction/${auction._id}`}>
+                      <button className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 flex items-center gap-2 mt-3 w-full justify-center">
+                        View Auction
+                      </button>
+                    </Link>
+                  </StaggerItem>
+                ))}
+              </StaggerGrid>
+            )}
           </div>
         </StaggerItem>
       </StaggerGrid>
