@@ -3,6 +3,8 @@ import Auction from "@/models/Auction";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   await connectDB();
 

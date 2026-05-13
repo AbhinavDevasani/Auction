@@ -4,6 +4,8 @@ import connectDB from "@/lib/db";
 import User from "@/models/User";
 import Auction from "@/models/Auction";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req) {
   try {
     const decoded = await verifyToken();

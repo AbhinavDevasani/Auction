@@ -27,7 +27,8 @@ const router = useRouter();
       }
       
       alert("Login successful");
-      window.location.href = "/dashboard";
+      router.refresh();
+      router.push("/dashboard");
     } catch (err) {
       console.error(err);
       alert("Something went wrong");
