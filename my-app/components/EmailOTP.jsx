@@ -138,7 +138,7 @@ export default function EmailOTP({ initialEmail = "", onVerified }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-gray-900"
               required
             />
           </div>
@@ -162,7 +162,7 @@ export default function EmailOTP({ initialEmail = "", onVerified }) {
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))} // Only allow numbers
               placeholder="000000"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-center text-xl tracking-[0.5em] font-mono"
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-center text-xl tracking-[0.5em] font-mono text-gray-900"
               required
             />
           </div>
