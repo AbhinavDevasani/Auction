@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -22,16 +23,16 @@ const router = useRouter();
       });
 
       if (res?.error) {
-        alert(res.error);
+        toast.error(res.error);
         return;
       }
       
-      alert("Login successful");
+      toast.success("Login successful");
       router.refresh();
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
   return (

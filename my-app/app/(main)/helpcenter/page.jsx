@@ -52,7 +52,7 @@ export default function HelpCenterPage() {
 
           {/* HELP CATEGORIES */}
           <StaggerItem>
-            <StaggerGrid className="grid md:grid-cols-4 gap-6">
+            <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <StaggerItem>
                 <div className="bg-white p-6 rounded-xl shadow transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
                   <Gavel className="mb-3 text-orange-600" size={28} />

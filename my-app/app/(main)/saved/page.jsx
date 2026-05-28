@@ -1,51 +1,47 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import connectDB from "@/lib/db";
+import User from "@/models/User";
+import Auction from "@/models/Auction";
+import { verifyToken } from "@/lib/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
+import "@/models/User"; // Ensure User model is loaded
+import "@/models/Auction"; // Ensure Auction model is loaded
 
-export default function SavedItemsPage() {
-  const [savedItems, setSavedItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default async function SavedItemsPage() {
+  await connectDB();
+  const decoded = await verifyToken();
 
-  useEffect(() => {
-    const fetchSavedItems = async () => {
-      try {
-        const res = await fetch("/api/user/saved");
-        const data = await res.json();
-        console.log(data)
-        if (res.ok) {
-          setSavedItems(data.savedItems || []);
-        }
-      } catch (error) {
-        console.error("Failed to fetch saved items", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSavedItems();
-  }, []);
-
-  if (loading) {
+  if (!decoded) {
     return (
-      <div className="bg-gray-100 min-h-screen px-8 py-12 flex justify-center items-center">
-        <p>Loading saved items...</p>
+      <div className="bg-gray-100 min-h-screen px-8 py-12 flex items-center justify-center text-[#1F2937]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Unauthorized</h1>
+          <p className="text-gray-500">Please sign in to view your saved items.</p>
+          <Link href="/signin">
+            <button className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 cursor-pointer">
+              Sign In
+            </button>
+          </Link>
+        </div>
       </div>
     );
   }
+
+  const user = await User.findById(decoded.userId || decoded.id || decoded._id).populate("savedItems").lean();
+  const savedItems = user?.savedItems || [];
+  const serializedSavedItems = JSON.parse(JSON.stringify(savedItems));
 
   return (
     <div className="bg-gray-100 min-h-screen px-8 py-12 text-[#1F2937]">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Saved Items</h1>
 
-        {savedItems.length === 0 ? (
+        {serializedSavedItems.length === 0 ? (
           <p className="text-gray-500">You have not saved any items yet.</p>
         ) : (
           <StaggerGrid className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {savedItems.map((item, index) => (
+            {serializedSavedItems.map((item, index) => (
               <StaggerItem key={item._id || index}>
                 <div
                   className="bg-white rounded-xl shadow p-4 
@@ -71,7 +67,7 @@ export default function SavedItemsPage() {
                   <Link href={`/auction/${item._id}`}>
                     <button
                       className="mt-3 w-full bg-orange-500 text-white py-2 rounded-lg
-                  transition duration-200 hover:bg-orange-600 hover:shadow-md"
+                  transition duration-200 hover:bg-orange-600 hover:shadow-md cursor-pointer"
                     >
                       View Auction
                     </button>

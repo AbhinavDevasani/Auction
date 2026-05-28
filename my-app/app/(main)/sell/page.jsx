@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { UploadCloud, X } from "lucide-react";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
+import { toast } from "sonner";
 
 export default function SellPage() {
   const [images, setImages] = useState([]);
@@ -82,7 +83,7 @@ export default function SellPage() {
       }
 
       setError("");
-      alert("Auction created successfully!");
+      toast.success("Auction created successfully!");
       setTitle("");
       setDescription("");
       setStartingPrice("");

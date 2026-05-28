@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, User } from "lucide-react";
 import Link from "next/link";
 import EmailOTP from "@/components/EmailOTP";
+import { toast } from "sonner";
 
 export default function SignUpPage() {
   const [name, setName] = useState("");
@@ -17,7 +18,7 @@ export default function SignUpPage() {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
@@ -33,15 +34,15 @@ export default function SignUpPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.error);
+        toast.error(data.error);
         return;
       }
 
-      // alert("Account created successfully");
+      toast.success("Account created! Verification code sent.");
       setShowOtp(true);
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 

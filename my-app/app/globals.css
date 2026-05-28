@@ -2,7 +2,38 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111827;
+  --card-bg: #ffffff;
+  --card-border: #f3f4f6;
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-text: #111827;
+  --btn-secondary-bg: #f3f4f6;
+  --btn-secondary-hover: #e5e7eb;
+  --btn-secondary-text: #1f2937;
+  --page-bg: #f3f4f6;
+}
+
+.dark {
+  --background: #0f172a; /* Slate 900 */
+  --foreground: #f8fafc; /* Slate 50 */
+  --card-bg: #1e293b; /* Slate 800 */
+  --card-border: #334155; /* Slate 700 */
+  --sidebar-bg: #1e293b; /* Slate 800 */
+  --sidebar-border: #334155; /* Slate 700 */
+  --text-primary: #f8fafc; /* Slate 50 */
+  --text-secondary: #94a3b8; /* Slate 400 */
+  --input-bg: #0f172a; /* Slate 900 */
+  --input-border: #334155; /* Slate 700 */
+  --input-text: #f8fafc;
+  --btn-secondary-bg: #334155; /* Slate 700 */
+  --btn-secondary-hover: #475569; /* Slate 600 */
+  --btn-secondary-text: #f8fafc;
+  --page-bg: #0f172a; /* Slate 900 */
 }
 
 @theme inline {
@@ -12,15 +43,102 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Dark Mode Override Utility Classes */
+.dark body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+.dark .bg-white {
+  background-color: var(--card-bg) !important;
+}
+
+.dark .bg-gray-100 {
+  background-color: var(--background) !important;
+}
+
+.dark .bg-\[\#F9FAFB\] {
+  background-color: var(--background) !important;
+}
+
+.dark .bg-gray-50 {
+  background-color: var(--background) !important;
+}
+
+.dark .text-\[\#1F2937\] {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-\[\#111827\] {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-black, .dark .text-gray-900, .dark .text-gray-800, .dark .text-gray-700 {
+  color: var(--text-primary) !important;
+}
+
+.dark .text-gray-500 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .text-gray-600 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .text-gray-400 {
+  color: var(--text-secondary) !important;
+}
+
+.dark .border-gray-100 {
+  border-color: var(--card-border) !important;
+}
+
+.dark .border-gray-200 {
+  border-color: var(--card-border) !important;
+}
+
+.dark .border, .dark .border-r, .dark .border-l, .dark .border-t, .dark .border-b {
+  border-color: var(--card-border) !important;
+}
+
+.dark input, .dark textarea, .dark select {
+  background-color: var(--input-bg) !important;
+  color: var(--input-text) !important;
+  border-color: var(--input-border) !important;
+}
+
+.dark input::placeholder, .dark textarea::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 0.7;
+}
+
+/* Sidebar Specific Styles in Dark Mode */
+.dark .w-\[20vw\] {
+  background-color: var(--sidebar-bg) !important;
+  border-color: var(--sidebar-border) !important;
+}
+
+.dark .hover\:bg-gray-50:hover {
+  background-color: var(--btn-secondary-bg) !important;
+}
+
+.dark .hover\:bg-gray-100:hover {
+  background-color: var(--btn-secondary-bg) !important;
+}
+
+.dark .bg-gray-100.text-black {
+  background-color: var(--btn-secondary-bg) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark .absolute.bottom-\[110\%\] {
+  background-color: var(--card-bg) !important;
+  border-color: var(--card-border) !important;
 }

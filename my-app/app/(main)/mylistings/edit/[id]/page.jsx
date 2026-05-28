@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 import { use } from "react";
+import { toast } from "sonner";
 
 export default function EditListingPage({ params }) {
   const router = useRouter();
@@ -86,7 +87,7 @@ export default function EditListingPage({ params }) {
         throw new Error(data.error || "Failed to update auction");
       }
 
-      alert("Auction updated successfully!");
+      toast.success("Auction updated successfully!");
       router.push("/mylistings");
     } catch (err) {
       console.error("Error:", err);

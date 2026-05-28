@@ -1,36 +1,31 @@
-"use client";
-import { useEffect, useState } from "react";
+import connectDB from "@/lib/db";
+import Auction from "@/models/Auction";
+import User from "@/models/User";
+import { verifyToken } from "@/lib/auth";
 import Image from "next/image";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 import Link from "next/link";
+import "@/models/User"; // Ensure User model is loaded
 
+export default async function AuctionsPage() {
+  await connectDB();
 
-export default function AuctionsPage() {
-  const [auctions, setAuctions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  // Fetch featured auctions (similar to `/api/auctions`)
+  const auctions = await Auction.find({})
+    .sort({ endTime: -1, createdAt: -1 })
+    .limit(8)
+    .populate("highestBidder", "name")
+    .lean();
 
-  useEffect(() => {
-    const fetchAuctions = async () => {
-      const res = await fetch("/api/auctions");
-      const data = await res.json()
-      setAuctions(data.auctions)
-      setLoading(false);
-    };
+  const decoded = await verifyToken();
+  let user = null;
 
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("/api/user");
-        const data = await res.json();
-        setUser(data.user);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+  if (decoded) {
+    user = await User.findById(decoded.userId || decoded.id || decoded._id).lean();
+  }
 
-    fetchAuctions();
-    fetchUser();
-  }, []);
+  const serializedAuctions = JSON.parse(JSON.stringify(auctions));
+
   return (
     <div className="bg-gray-100 min-h-screen">
       {/* HERO */}
@@ -97,8 +92,8 @@ export default function AuctionsPage() {
           <h2 className="text-2xl font-semibold mb-6">Featured Lots</h2>
         </StaggerItem>
 
-        <StaggerGrid className="grid md:grid-cols-4 gap-6">
-          {auctions.slice(0, 4).map((item, index) => (
+        <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {serializedAuctions.slice(0, 4).map((item, index) => (
             <StaggerItem key={index}>
               {/* CARD */}
               <div
@@ -111,17 +106,17 @@ export default function AuctionsPage() {
                   width={300}
                   height={200}
                   alt={item.title}
-                  className="rounded-lg object-cover h-40"
+                  className="rounded-lg object-cover h-40 w-full"
                 />
 
                 <h3 className="mt-3 font-medium">{item.title}</h3>
 
                 <p className="text-sm text-gray-500">Current Bid</p>
 
-                <p className="font-bold">₹{item.currentBid}</p>
+                <p className="font-bold">₹{item.currentBid || item.startingPrice}</p>
 
                 <Link href={`/auction/${item._id}`}>
-                  <button className="mt-3 w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600">
+                  <button className="mt-3 w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 cursor-pointer">
                     Place Bid
                   </button>
                 </Link>

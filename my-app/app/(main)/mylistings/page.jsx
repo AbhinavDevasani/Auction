@@ -1,48 +1,37 @@
-"use client"
+import connectDB from "@/lib/db";
+import Auction from "@/models/Auction";
+import { verifyToken } from "@/lib/auth";
+import MyListingsClient from "@/components/MyListingsClient";
+import Link from "next/link";
 
-import Image from "next/image"
-import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+export default async function MyListingsPage() {
+  await connectDB();
+  const decoded = await verifyToken();
 
-export default function MyListingsPage() {
-  const router = useRouter()
-  const [listings, setListings] = useState([])
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this auction?")) {
-      try {
-        const res = await fetch(`/api/auctions/${id}`, { method: 'DELETE' })
-        const data = await res.json()
-        if (data.success) {
-          setListings(prev => prev.filter(item => item._id !== id))
-        } else {
-          alert(data.error || "Failed to delete")
-        }
-      } catch (error) {
-        console.error(error)
-        alert("Failed to delete")
-      }
-    }
+  if (!decoded) {
+    return (
+      <div className="bg-gray-100 min-h-screen px-8 py-12 flex items-center justify-center text-[#1F2937]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Unauthorized</h1>
+          <p className="text-gray-500">Please sign in to view your listings.</p>
+          <Link href="/signin">
+            <button className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 cursor-pointer">
+              Sign In
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
   }
 
-  const getListings = async () => {
-    try {
-      const res = await fetch("/api/user/listings")
-      const data = await res.json()
-      setListings(data.listings || [])
-    } catch (err) {
-      console.error("Failed to fetch listings", err)
-    }
-  }
+  const listings = await Auction.find({ seller: decoded.userId || decoded.id || decoded._id })
+    .sort({ createdAt: -1 })
+    .lean();
 
-  useEffect(() => {
-    getListings()
-  }, [])
-  console.log(listings)
+  const serializedListings = JSON.parse(JSON.stringify(listings));
+
   return (
     <div className="flex-1 bg-[#F9FAFB] min-h-screen p-6">
-
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-[#1F2937]">
@@ -53,100 +42,7 @@ export default function MyListingsPage() {
         </p>
       </div>
 
-      {/* Grid or Empty State */}
-      {listings.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-400 w-full col-span-full">
-          <p className="text-xl font-medium mb-1">No listings found</p>
-          <p className="text-sm">You haven't created any auctions yet.</p>
-        </div>
-      ) : (
-        <StaggerGrid className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {listings.map((item) => {
-
-            const isLocked = item.bids?.length > 0
-
-            return (
-              <StaggerItem key={item._id}>
-                <div className="bg-white rounded-xl p-3 shadow-sm hover:shadow-md transition">
-
-                  {/* Image */}
-                  <div className="relative w-full h-32 mb-2">
-                    <Image
-                      src={item.image || "/placeholder.jpg"}
-                      alt={item.title}
-                      fill
-                      className="object-cover rounded-lg"
-                    />
-                  </div>
-
-                  {/* Title */}
-                  <h2 className="text-sm font-semibold text-[#1F2937] line-clamp-1">
-                    {item.title}
-                  </h2>
-
-                  {/* Info */}
-                  <div className="text-xs text-gray-500 mt-1 space-y-0.5">
-                    <p>
-                      Bid:{" "}
-                      <span className="text-black font-medium">
-                        ₹{item.currentBid || item.startingPrice}
-                      </span>
-                    </p>
-
-                    <p>{item.bids?.length || 0} bids</p>
-
-                    <p className="text-orange-500">
-                      {item.status === "ended" ? "Ended" : "Active"}
-                    </p>
-                  </div>
-
-                  {/* Status */}
-                  <div className="mt-2">
-                    {item.status === "ended" ? (
-                      <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded">
-                        Ended
-                      </span>
-                    ) : isLocked ? (
-                      <span className="text-[10px] bg-gray-200 text-gray-600 px-2 py-0.5 rounded">
-                        Locked
-                      </span>
-                    ) : (
-                      <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded">
-                        Active
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center w-full mt-2 text-xs">
-                    {!isLocked && item.status !== "ended" ? (
-                      <>
-                        <button onClick={() => router.push(`/mylistings/edit/${item._id}`)} className="text-orange-500 hover:underline">
-                          Edit
-                        </button>
-                        <button onClick={() => handleDelete(item._id)} className="text-red-500 ml-2 hover:underline">
-                          Delete
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-gray-400 italic">
-                        {item.status === "ended"
-                          ? "Auction ended"
-                          : "Locked after first bid"}
-                      </span>
-                    )}
-
-                    <button onClick={() => router.push(`/auction/${item._id}`)} className="ml-auto text-gray-600 hover:underline">
-                      View
-                    </button>
-                  </div>
-
-                </div>
-              </StaggerItem>
-            )
-          })}
-        </StaggerGrid>
-      )}
+      <MyListingsClient initialListings={serializedListings} />
     </div>
-  )
+  );
 }

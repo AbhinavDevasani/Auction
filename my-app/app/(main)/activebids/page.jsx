@@ -1,41 +1,43 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import connectDB from "@/lib/db";
+import Auction from "@/models/Auction";
+import User from "@/models/User";
+import { verifyToken } from "@/lib/auth";
 import Image from "next/image";
 import { StaggerGrid, StaggerItem } from "@/components/StaggerGrid";
 import Link from "next/link";
+import "@/models/User"; // Ensure User model is loaded
 
-export default function ActiveBidsPage() {
-  const [bids, setBids] = useState([]);
-  const [user, setUser] = useState(null);
+export default async function ActiveBidsPage() {
+  await connectDB();
+  const decoded = await verifyToken();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const res = await fetch("/api/user", {
-        credentials: "include",
-      });
-      const data = await res.json();
-      if (res.ok) setUser(data.user);
-    };
+  if (!decoded) {
+    return (
+      <div className="bg-gray-100 min-h-screen px-8 py-12 flex items-center justify-center text-[#1F2937]">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Unauthorized</h1>
+          <p className="text-gray-500">Please sign in to view your active bids.</p>
+          <Link href="/signin">
+            <button className="mt-4 bg-orange-500 text-white px-6 py-2 rounded-lg hover:bg-orange-600 cursor-pointer">
+              Sign In
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
-    fetchUser();
-  }, []);
+  const user = await User.findById(decoded.userId || decoded.id || decoded._id).lean();
 
-  useEffect(() => {
-    const fetchBids = async () => {
-      const res = await fetch("/api/auctions/activebids", {
-        credentials: "include",
-      });
+  const auctions = await Auction.find({
+    "bids.user": user?._id,
+  })
+    .populate("bids.user", "name _id")
+    .populate("highestBidder", "name _id")
+    .lean();
 
-      const data = await res.json();
-
-      if (res.ok) {
-        setBids(data.auctions);
-      }
-    };
-
-    fetchBids();
-  }, []);
+  const serializedAuctions = JSON.parse(JSON.stringify(auctions));
+  const serializedUser = user ? JSON.parse(JSON.stringify(user)) : null;
 
   const getTimeLeft = (endTime) => {
     const diff = new Date(endTime) - new Date();
@@ -59,15 +61,15 @@ export default function ActiveBidsPage() {
         </p>
 
         {/* Grid */}
-        <StaggerGrid className="grid md:grid-cols-3 gap-6">
-          {bids.map((auction, index) => {
-            const userId = user?._id;
+        <StaggerGrid className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {serializedAuctions.map((auction, index) => {
+            const userId = serializedUser?._id;
             const yourBid = auction.bids
-              ?.filter((b) => b.user?._id === userId)
+              ?.filter((b) => (b.user?._id || b.user || "").toString() === userId)
               ?.sort((a, b) => b.amount - a.amount)[0]?.amount;
 
             const isWinning =
-              auction.highestBidder?._id === userId;
+              (auction.highestBidder?._id || auction.highestBidder || "").toString() === userId;
 
             return (
               <StaggerItem key={index}>
@@ -81,7 +83,7 @@ export default function ActiveBidsPage() {
                     width={400}
                     height={250}
                     alt={auction.title}
-                    className="rounded-lg object-cover h-44"
+                    className="rounded-lg object-cover h-44 w-full"
                   />
 
                   <h3 className="mt-3 font-semibold">
@@ -123,7 +125,7 @@ export default function ActiveBidsPage() {
                   </div>
 
                   <Link href={`/auction/${auction._id}`}>
-                    <button className="mt-4 w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600">
+                    <button className="mt-4 w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 cursor-pointer">
                       View Auction
                     </button>
                   </Link>
@@ -134,7 +136,7 @@ export default function ActiveBidsPage() {
         </StaggerGrid>
 
         {/* Empty state */}
-        {bids.length === 0 && (
+        {serializedAuctions.length === 0 && (
           <p className="text-center text-gray-500 mt-10">
             You have not placed any bids yet.
           </p>
