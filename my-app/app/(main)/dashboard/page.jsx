@@ -89,6 +89,25 @@ export default async function DashboardPage() {
   const serializedCompletedAuctions = JSON.parse(JSON.stringify(completedAuctions));
   const serializedFeaturedAuction = featuredAuction ? JSON.parse(JSON.stringify(featuredAuction)) : null;
 
+  // Prepare spending history graph data
+  const sortedCompleted = [...serializedCompletedAuctions].sort(
+    (a, b) => new Date(a.endTime) - new Date(b.endTime)
+  );
+
+  const graphData = [{ date: "Start", value: 0 }];
+  let cumulativeSpent = 0;
+  sortedCompleted.forEach((auction) => {
+    cumulativeSpent += auction.currentBid || 0;
+    graphData.push({
+      date: new Date(auction.endTime).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      }),
+      value: cumulativeSpent,
+      title: auction.title,
+    });
+  });
+
   return (
     <div className="flex-1 bg-gray-100 min-h-screen p-8 text-[#1F2937]">
       <StaggerGrid className="space-y-10">
@@ -191,7 +210,7 @@ export default async function DashboardPage() {
               <h3 className="font-semibold mb-4 text-[#1F2937]">Auction Stats</h3>
 
               <div className="h-32 bg-gradient-to-r from-orange-200 to-yellow-200 rounded-lg mb-4">
-                <LineGraph />
+                <LineGraph data={graphData} />
               </div>
 
               <div className="space-y-2 text-sm text-[#1F2937]">

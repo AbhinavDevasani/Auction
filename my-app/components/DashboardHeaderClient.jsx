@@ -39,7 +39,6 @@ export default function DashboardHeaderClient({ initialUser }) {
 
       <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
         <div className="flex items-center gap-3">
-          <NotificationsPanel />
 
           <Link href={"/wallet"}>
             <div className="bg-white px-4 py-2 rounded-xl shadow text-sm font-medium text-[#1F2937] cursor-pointer hover:bg-gray-50 transition whitespace-nowrap">

@@ -70,6 +70,7 @@ export default async function ActiveBidsPage() {
 
             const isWinning =
               (auction.highestBidder?._id || auction.highestBidder || "").toString() === userId;
+            const isEnded = auction.status === "ended" || new Date(auction.endTime) <= new Date();
 
             return (
               <StaggerItem key={index}>
@@ -120,7 +121,7 @@ export default async function ActiveBidsPage() {
                           : "text-red-500"
                       }`}
                     >
-                      {isWinning ? "Winning" : "Outbid"}
+                      {isEnded ? (isWinning ? "Won" : "Lost") : (isWinning ? "Winning" : "Outbid")}
                     </p>
                   </div>
 

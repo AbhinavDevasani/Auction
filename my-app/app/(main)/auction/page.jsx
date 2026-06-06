@@ -73,7 +73,7 @@ export default async function AuctionsPage() {
           </StaggerItem>
 
           <StaggerItem>
-            <div className="bg-white rounded-2xl shadow-xl p-6">
+            <div className="bg-white rounded-2xl shadow-xl p-6 md:block hidden">
               <Image
                 src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format"
                 width={500}
